@@ -37,8 +37,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
-      <PackageReference Include="System.Memory" Version="4.6.0" />
+      <PackageReference Include="System.Collections.Immutable" Version="9.0.4" />
+      <PackageReference Include="System.Memory" Version="4.6.3" />
     </ItemGroup>
 
     <ItemGroup>
