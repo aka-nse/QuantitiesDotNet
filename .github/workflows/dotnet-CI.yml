@@ -15,10 +15,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Restore dependencies
-      run: dotnet restore src/QuantitiesDotNet.sln
+      run: dotnet restore src/QuantitiesDotNet.slnx
 
     - name: Build solution
-      run: dotnet build src/QuantitiesDotNet.sln --no-restore
+      run: dotnet build src/QuantitiesDotNet.slnx --no-restore
 
     - name: Run tests
-      run: dotnet test src/QuantitiesDotNet.sln --no-build --verbosity normal
+      run: dotnet test src/QuantitiesDotNet.slnx --no-build --verbosity normal
