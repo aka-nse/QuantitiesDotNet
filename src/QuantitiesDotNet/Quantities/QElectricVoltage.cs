@@ -8,6 +8,6 @@ namespace QuantitiesDotNet;
 /// </summary>
 [Quantity(L: 2, M: 1, T: -3, I: -1, Th: 0, N: 0, J: 0)]
 [QuantityUnit("Volt", "V", 1.0, None | Milli | Micro | Kilo | Mega, exportsShorthandSymbol: true)]
-public readonly partial struct QElectricVoltage : IQuantity<QElectricVoltage>
+public readonly partial struct QElectricVoltage : IQuantity<QElectricVoltage, double>
 {
 }

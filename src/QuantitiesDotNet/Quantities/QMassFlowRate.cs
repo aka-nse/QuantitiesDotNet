@@ -9,6 +9,6 @@ namespace QuantitiesDotNet;
 [Quantity(L: 0, M: 1, T: -1, I: 0, Th: 0, N: 0, J: 0)]
 [QuantityUnit("GramPerSecond", "g/s", 1e-3, None | Milli | Kilo)]
 [QuantityOperation(typeof(QMassFlowRate), typeof(QTime), typeof(QMass))]
-public readonly partial struct QMassFlowRate : IQuantity<QMassFlowRate>
+public readonly partial struct QMassFlowRate : IQuantity<QMassFlowRate, double>
 {
 }

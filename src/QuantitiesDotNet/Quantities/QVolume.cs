@@ -10,6 +10,6 @@ namespace QuantitiesDotNet;
 [QuantityUnit("CubicMetre", "m^3", 1.0, None | Centi, 3)]
 [QuantityUnit("Litre", "L", 1e-3, None, 3)]
 [QuantityOperation(typeof(QLength), typeof(QArea), typeof(QVolume))]
-public readonly partial struct QVolume : IQuantity<QVolume>
+public readonly partial struct QVolume : IQuantity<QVolume, double>
 {
 }

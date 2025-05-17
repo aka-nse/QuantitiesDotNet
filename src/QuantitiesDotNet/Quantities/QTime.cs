@@ -10,7 +10,7 @@ namespace QuantitiesDotNet;
 [QuantityUnit("Second", "s", 1.0, None | Milli | Micro | Nano | Pico | Femto, exportsShorthandSymbol: true)]
 [QuantityUnit("Minute", "min", 60.0, exportsShorthandSymbol: true)]
 [QuantityUnit("Hour", "h", 3600.0, exportsShorthandSymbol: true)]
-public readonly partial struct QTime : IQuantity<QTime>
+public readonly partial struct QTime : IQuantity<QTime, double>
 {
     /// <summary>
     /// Converts from <see cref="QTime"/> to <see cref="TimeSpan"/>.

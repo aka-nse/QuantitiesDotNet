@@ -9,6 +9,6 @@ namespace QuantitiesDotNet;
 [Quantity(L: -1, M: 0, T: 0, I: 1, Th: 0, N: 0, J: 0)]
 [QuantityUnit("AmparePerMetre", "A/m", 1.0, None | Milli | Kilo)]
 [QuantityOperation(typeof(QLength), typeof(QMagneticFieldStrength), typeof(QElectricCurrent))]
-public readonly partial struct QMagneticFieldStrength : IQuantity<QMagneticFieldStrength>
+public readonly partial struct QMagneticFieldStrength : IQuantity<QMagneticFieldStrength, double>
 {
 }

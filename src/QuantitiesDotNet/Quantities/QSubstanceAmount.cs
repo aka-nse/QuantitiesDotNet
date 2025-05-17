@@ -8,6 +8,6 @@ namespace QuantitiesDotNet;
 /// </summary>
 [Quantity(L: 0, M: 0, T: 0, I: 0, Th: 0, N: 1, J: 0)]
 [QuantityUnit("Mole", "mol", 1.0, None | Milli | Kilo, exportsShorthandSymbol: true)]
-public readonly partial struct QSubstanceAmount : IQuantity<QSubstanceAmount>
+public readonly partial struct QSubstanceAmount : IQuantity<QSubstanceAmount, double>
 {
 }

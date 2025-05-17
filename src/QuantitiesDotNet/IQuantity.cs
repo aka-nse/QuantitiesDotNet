@@ -1,7 +1,18 @@
 namespace QuantitiesDotNet;
 
+public interface IQuantity
+    : IFormattable
+{
+#if NET7_0_OR_GREATER
+    public static abstract QuantityMetadata Metadata { get; }
+#endif
+    public QuantityMetadata MetadataInstance { get; }
+
+}
+
 public interface IQuantity<TSelf, T>
-    : IComparable<TSelf>
+    : IQuantity
+    , IComparable<TSelf>
     , IEquatable<TSelf>
 #if NET7_0_OR_GREATER
     , ISpanFormattable

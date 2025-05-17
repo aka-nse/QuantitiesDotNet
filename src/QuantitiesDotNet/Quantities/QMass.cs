@@ -9,6 +9,6 @@ namespace QuantitiesDotNet;
 [Quantity(L: 0, M: 1, T: 0, I: 0, Th: 0, N: 0, J: 0)]
 [QuantityUnit("Gram", "g", 1.0e-3, None | Milli | Micro | Kilo, exportsShorthandSymbol: true)]
 [QuantityUnit("Tonne", "t", 1.0e+3)]
-public readonly partial struct QMass : IQuantity<QMass>
+public readonly partial struct QMass : IQuantity<QMass, double>
 {
 }

@@ -8,6 +8,6 @@ namespace QuantitiesDotNet;
 /// </summary>
 [Quantity(L: 0, M: 0, T: 0, I: 1, Th: 0, N: 0, J: 0)]
 [QuantityUnit("Ampere", "A", 1.0, None | Milli | Micro | Nano | Pico | Kilo, exportsShorthandSymbol: true)]
-public readonly partial struct QElectricCurrent : IQuantity<QElectricCurrent>
+public readonly partial struct QElectricCurrent : IQuantity<QElectricCurrent, double>
 {
 }

@@ -11,6 +11,6 @@ namespace QuantitiesDotNet;
 [QuantityUnit("MetrePerMinute", "m/min", 1.0 / 60)]
 [QuantityUnit("KilometrePerHour", "km/h", 1.0e+3 / 3600)]
 [QuantityOperation(typeof(QTime), typeof(QSpeed), typeof(QLength))]
-public readonly partial struct QSpeed : IQuantity<QSpeed>
+public readonly partial struct QSpeed : IQuantity<QSpeed, double>
 {
 }

@@ -12,7 +12,7 @@
         <PackageProjectUrl>https://github.com/aka-nse/QuantitiesDotNet</PackageProjectUrl>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/aka-nse/QuantitiesDotNet</RepositoryUrl>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageIcon>icon.png</PackageIcon>
     </PropertyGroup>
 </Project>

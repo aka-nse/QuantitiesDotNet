@@ -9,6 +9,6 @@ namespace QuantitiesDotNet;
 [Quantity(L: -3, M: -1, T: 3, I: 2, Th: 0, N: 0, J: 0)]
 [QuantityUnit("SiemensPerMetre", "S/m", 1.0, None | Milli | Micro | Nano | Pico)]
 [QuantityOperation(typeof(QLength), typeof(QElectricConductivity), typeof(QElectricConductance))]
-public readonly partial struct QElectricConductivity : IQuantity<QElectricConductivity>
+public readonly partial struct QElectricConductivity : IQuantity<QElectricConductivity, double>
 {
 }

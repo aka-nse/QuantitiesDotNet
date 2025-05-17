@@ -6,6 +6,6 @@ namespace QuantitiesDotNet;
 /// </summary>
 [Quantity(L: 0, M: 0, T: 0, I: 0, Th: 0, N: 0, J: 0)]
 [QuantityUnit("Raw", "1", 1)]
-public readonly partial struct QDimensionless : IQuantity
+public readonly partial struct QDimensionless : IQuantity<QDimensionless, double>
 {
 }

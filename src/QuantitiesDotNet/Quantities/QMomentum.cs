@@ -11,6 +11,6 @@ namespace QuantitiesDotNet;
 [QuantityUnit("NewtonSecond", "N*s", 1, None | Milli | Kilo)]
 [QuantityOperation(typeof(QForce), typeof(QTime), typeof(QMomentum))]
 [QuantityOperation(typeof(QMass), typeof(QSpeed), typeof(QMomentum))]
-public readonly partial struct QMomentum : IQuantity<QMomentum>
+public readonly partial struct QMomentum : IQuantity<QMomentum, double>
 {
 }

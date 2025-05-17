@@ -10,6 +10,6 @@ namespace QuantitiesDotNet;
 [QuantityUnit("Watt", "W", 1.0, None | Milli | Micro | Nano | Pico | Femto | Kilo | Mega | Giga | Tera | Peta, exportsShorthandSymbol: true)]
 [QuantityOperation(typeof(QTime), typeof(QPower), typeof(QEnergy))]
 [QuantityOperation(typeof(QElectricCurrent), typeof(QElectricVoltage), typeof(QPower))]
-public readonly partial struct QPower : IQuantity<QPower>
+public readonly partial struct QPower : IQuantity<QPower, double>
 {
 }

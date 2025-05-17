@@ -17,7 +17,7 @@ public class DimensionTest
     {
         static QuantityMetadata? getInfo(Type type)
             => type
-                .GetProperty(nameof(QDimensionless.Info), BindingFlags.Public | BindingFlags.Static)
+                .GetProperty(nameof(QDimensionless.Metadata), BindingFlags.Public | BindingFlags.Static)
                 ?.GetValue(null) as QuantityMetadata;
 
         var types = typeof(QuantityMetadata).Assembly

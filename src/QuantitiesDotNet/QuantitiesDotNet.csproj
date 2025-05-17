@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <LangVersion>13.0</LangVersion>
@@ -9,6 +9,8 @@
         <Description>.Net library for physical quantity handling</Description>
         <AssemblyVersion>0.2.0.0</AssemblyVersion>
         <FileVersion>$(AssemblyVersion)</FileVersion>
+
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+      <None Include="../../LICENSE.txt" Pack="true" PackagePath="/" />
       <None Include="../../readme.md" Pack="true" PackagePath="/" />
       <None Include="../../resource/icon.png" Pack="true" PackagePath="/" />
     </ItemGroup>

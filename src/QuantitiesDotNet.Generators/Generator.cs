@@ -9,8 +9,6 @@ public partial class Generator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(callback: GenerateAttributes);
-
         var quantityAttributeSymbol = context
             .CompilationProvider
             .GetMetadata("QuantitiesDotNet.QuantityAttribute");
@@ -28,14 +26,6 @@ public partial class Generator : IIncrementalGenerator
                 .Combine(quantityUnitAttributeSymbol
                     .Combine(quantityOperationAttributeSymbol)));
         context.RegisterSourceOutput(source, GenerateUnitTypeImplements);
-    }
-
-
-    private void GenerateAttributes(IncrementalGeneratorPostInitializationContext context)
-    {
-        var canceller = context.CancellationToken;
-        canceller.ThrowIfCancellationRequested();
-        context.AddSource("Attributes.cs", AttributesText);
     }
 
 
@@ -60,8 +50,8 @@ public partial class Generator : IIncrementalGenerator
             info.TargetSymbol.Name,
             info.TargetSymbol.IsRefLikeType,
             QuantityDef.GetQuantityDef(qDef),
-            unitDefs.SelectMany(UnitSymbolDef.GetUnitSymbols).ToArray(),
-            operationDefs.Select(attr => new UnitOperationDef(attr)).ToArray());
+            [.. unitDefs.SelectMany(UnitSymbolDef.GetUnitSymbols)],
+            [.. operationDefs.Select(static attr => new UnitOperationDef(attr))]);
         var sb = new StringBuilder();
         generator.Generate(sb, context.CancellationToken);
         context.AddSource(

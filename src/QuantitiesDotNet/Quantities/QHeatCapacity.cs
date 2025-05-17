@@ -9,6 +9,6 @@ namespace QuantitiesDotNet;
 [Quantity(L: 2, M: 1, T: -2, I: 0, Th: -1, N: 0, J: 0)]
 [QuantityUnit("JoulePerKelvin", "J/K", 1.0, None | Milli | Micro | Nano | Kilo | Mega | Giga)]
 [QuantityOperation(typeof(QTemperature), typeof(QHeatCapacity), typeof(QEnergy))]
-public readonly partial struct QHeatCapacity : IQuantity<QHeatCapacity>
+public readonly partial struct QHeatCapacity : IQuantity<QHeatCapacity, double>
 {
 }

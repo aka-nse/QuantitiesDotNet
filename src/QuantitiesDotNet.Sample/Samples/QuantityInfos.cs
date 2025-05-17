@@ -19,7 +19,7 @@ internal class QuantityInfos : IUsageSample
         foreach (var type in types)
         {
             // for reflection of ref struct, explicitly named backing field is provided.
-            var info = type.GetField(nameof(QDimensionless._Info), flags)!.GetValue(null) as QuantityMetadata;
+            var info = type.GetField(nameof(QDimensionless._Metadata), flags)!.GetValue(null) as QuantityMetadata;
 
             stdout.WriteLine($"{info?.Name,-24} (Dimension={info?.Dimension})");
         }
