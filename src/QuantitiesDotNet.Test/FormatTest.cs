@@ -8,7 +8,7 @@ public class FormatTest
     public static IEnumerable<object[]> FormatTestCase()
     {
         static object[] core(IQuantity value, string format, CultureInfo? cultureInfo, string expected)
-            => new object[] { value, format, cultureInfo ?? CultureInfo.InvariantCulture, expected, };
+            => [value, format, cultureInfo ?? CultureInfo.InvariantCulture, expected,];
 
         yield return core(QSpeed.FromMetrePerSecond(1.234), "", null, "1.234m/s");
         yield return core(QSpeed.FromMetrePerSecond(1.234), "&", null, "1.234m/s");

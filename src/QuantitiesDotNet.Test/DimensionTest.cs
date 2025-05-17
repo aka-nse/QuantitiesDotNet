@@ -5,9 +5,9 @@ namespace QuantitiesDotNet;
 public class DimensionTest
 {
     public record ValidateDimensionCalculationTestCase(
-        QuantityInfo Ans,
-        QuantityInfo Lhs,
-        QuantityInfo Rhs)
+        QuantityMetadata Ans,
+        QuantityMetadata Lhs,
+        QuantityMetadata Rhs)
     {
         public override string ToString()
             => $"{Ans.Name} = {Lhs.Name} * {Rhs.Name}";
@@ -15,12 +15,12 @@ public class DimensionTest
 
     public static IEnumerable<object[]> ValidateDimensionCalculationTestCases()
     {
-        static QuantityInfo? getInfo(Type type)
+        static QuantityMetadata? getInfo(Type type)
             => type
-                .GetProperty(nameof(QDimensionless.Info), BindingFlags.Public | BindingFlags.Static)
-                ?.GetValue(null) as QuantityInfo;
+                .GetProperty(nameof(QDimensionless.Metadata), BindingFlags.Public | BindingFlags.Static)
+                ?.GetValue(null) as QuantityMetadata;
 
-        var types = typeof(QuantityInfo).Assembly
+        var types = typeof(QuantityMetadata).Assembly
             .GetTypes()
             .Where(t => t.IsValueType)
             .Where(t => !t.IsGenericType)

@@ -9,20 +9,29 @@ internal class Parsing : IUsageSample
     public void Execute(TextWriter stdout)
     {
         // all results: 1.234m/s
-        stdout.WriteLine($"{QSpeed.Parse("1.234m/s", CultureInfo.InvariantCulture)}");
-        stdout.WriteLine($"{QSpeed.Parse("4.4424km/h", CultureInfo.InvariantCulture):0.000}");
-        stdout.WriteLine($"{QSpeed.Parse("1,234m/s", CultureInfo.GetCultureInfo("fr-FR"))}");
-        stdout.WriteLine($"{QSpeed.Parse("1.234 m/s", CultureInfo.InvariantCulture)}");
-        stdout.WriteLine($"{QSpeed.Parse("1.234[m/s]", CultureInfo.InvariantCulture)}");
-        stdout.WriteLine($"{QSpeed.Parse("1.234 m/s", CultureInfo.InvariantCulture)}");
+        Core(stdout, "1.234m/s", CultureInfo.InvariantCulture);
+        Core(stdout, "4.4424km/h", CultureInfo.InvariantCulture, "0.000");
+        Core(stdout, "1,234m/s", CultureInfo.GetCultureInfo("fr-FR"));
+        Core(stdout, "1.234 m/s", CultureInfo.InvariantCulture);
+        Core(stdout, "1.234[m/s]", CultureInfo.InvariantCulture);
+        Core(stdout, "1.234 m/s", CultureInfo.InvariantCulture);
+        Core(stdout, "1.234", CultureInfo.InvariantCulture);
+    }
 
+    private static void Core(TextWriter stdout, string expression, CultureInfo cultureInfo, string? format = null)
+    {
         try
         {
-            stdout.WriteLine($"{QSpeed.Parse("1.234", CultureInfo.InvariantCulture)}");
+            stdout.Write($"{expression} -> ");
+            var formatted = format is { }
+                ? QSpeed.Parse(expression, cultureInfo).ToString(format, cultureInfo)
+                : QSpeed.Parse(expression, cultureInfo).ToString();
+            stdout.Write(formatted);
         }
         catch (FormatException)
         {
-            stdout.WriteLine("You cannot omit unit.");
+            stdout.Write("You cannot omit unit.");
         }
+        stdout.WriteLine();
     }
 }

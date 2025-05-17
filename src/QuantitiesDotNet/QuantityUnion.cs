@@ -12,10 +12,10 @@ namespace QuantitiesDotNet
     /// This type is intended to be used only during conversion to other types.
     /// </summary>
     public readonly struct QuantityUnion<T1, T2>
-        where T1 : IQuantity<T1>
-        where T2 : IQuantity<T2>
+        where T1 : IQuantity<T1, double>
+        where T2 : IQuantity<T2, double>
     {
-        public readonly double RawValue;
+        public double RawValue { get; }
 
         internal QuantityUnion(double value) => RawValue = value;
     }

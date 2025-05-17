@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace QuantitiesDotNet.Generators;
@@ -11,8 +11,8 @@ internal class QuantityImplementBuilder(
     IList<UnitOperationDef> UnitOperations
     )
 {
-    public UnitSymbolDef PrimaryUnit => _PrimaryUnit ??= GetPrimaryUnit();
-    private UnitSymbolDef? _PrimaryUnit;
+    public UnitSymbolDef PrimaryUnit => _primaryUnit ??= GetPrimaryUnit();
+    private UnitSymbolDef? _primaryUnit;
     private UnitSymbolDef GetPrimaryUnit() => UnitSymbols.FirstOrDefault() ?? new UnitSymbolDef("RawValue", "", 1, false);
 
 
@@ -39,32 +39,22 @@ namespace QuantitiesDotNet
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(double))]
     public partial struct {{TargetTypeName}}
 """); if (!IsRefLikeType) { sb.AppendLine($$"""
-        : IQuantity<{{TargetTypeName}}>
-        , IComparable<{{TargetTypeName}}>
-        , IEquatable<{{TargetTypeName}}>
+        : IQuantity<{{TargetTypeName}}, double>
     #if NET7_0_OR_GREATER
-        , IComparisonOperators<{{TargetTypeName}}, {{TargetTypeName}}, bool>
-        , IAdditionOperators<{{TargetTypeName}}, {{TargetTypeName}}, {{TargetTypeName}}>
-        , ISubtractionOperators<{{TargetTypeName}}, {{TargetTypeName}}, {{TargetTypeName}}>
         , IMultiplyOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
         , IDivisionOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
         , IDivisionOperators<{{TargetTypeName}}, {{TargetTypeName}}, double>
-        , IModulusOperators<{{TargetTypeName}}, {{TargetTypeName}}, {{TargetTypeName}}>
-        , IAdditiveIdentity<{{TargetTypeName}}, {{TargetTypeName}}>
-        , IMultiplicativeIdentity<{{TargetTypeName}}, double>
-        , IUnaryPlusOperators<{{TargetTypeName}}, {{TargetTypeName}}>
-        , IUnaryNegationOperators<{{TargetTypeName}}, {{TargetTypeName}}>
     #endif
 """); }
         sb.AppendLine($$"""
     {
         /// <summary>
-        /// Gets quantity information instance for <see cref="{{TargetTypeName}}" />.
+        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
         /// </summary>
-        public static QuantityInfo Info => _Info;
+        public static QuantityMetadata Metadata => _Metadata;
 
         // for reflection of ref struct, explicitly named backing field is provided.
-        internal static readonly QuantityInfo _Info = new(
+        internal static readonly QuantityMetadata _Metadata = new(
             "{{TargetTypeName.Substring(1)}}",
             L : {{QuantityDef.L}},
             M : {{QuantityDef.M}},
@@ -75,9 +65,9 @@ namespace QuantitiesDotNet
             J : {{QuantityDef.J}});
 
         /// <summary>
-        /// Gets quantity information instance for <see cref="{{TargetTypeName}}" />.
+        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
         /// </summary>
-        public QuantityInfo InfoInstance => Info;
+        public QuantityMetadata MetadataInstance => Metadata;
 
         private readonly double _RawValue;
 
@@ -169,22 +159,16 @@ namespace QuantitiesDotNet.Generic
     public partial struct {{TargetTypeName}}<T>
 """); if (!IsRefLikeType) { sb.AppendLine($$"""
         : IQuantity<{{TargetTypeName}}<T>, T>
-        , IComparable<{{TargetTypeName}}<T>>
-        , IEquatable<{{TargetTypeName}}<T>>
-        , IComparisonOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, bool>
-        , IAdditionOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
-        , ISubtractionOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
         , IMultiplyOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
         , IDivisionOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, T>
-        , IModulusOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
-        , IAdditiveIdentity<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
-        , IMultiplicativeIdentity<{{TargetTypeName}}<T>, T>
-        , IUnaryPlusOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
-        , IUnaryNegationOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>>
+        , IDivisionOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
 """); }
         sb.AppendLine($$"""
         where T : INumber<T>
     {
+        public static QuantityMetadata Metadata => {{TargetTypeName}}.Metadata;
+        public QuantityMetadata MetadataInstance => {{TargetTypeName}}.Metadata;
+
         private readonly T _RawValue;
 
         /// <summary>
@@ -403,7 +387,7 @@ namespace QuantitiesDotNet.Generic
     {
         var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
         var entityTypeName = isGeneric ? "T" : "double";
-        var unitInfoTypeName = isGeneric ? "UnitInfo<T>" : "UnitInfo";
+        var unitInfoTypeName = isGeneric ? "UnitMetadata<T>" : "UnitMetadata<double>";
         var getUnitScaleFormat = isGeneric ? "T.CreateSaturating({0})" : "{0}";
         sb.AppendLine($$"""
         #region unit definition implements

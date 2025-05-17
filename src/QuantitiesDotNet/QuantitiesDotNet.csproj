@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <LangVersion>13.0</LangVersion>
         <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <PackageId>akanse.$(AssemblyName)</PackageId>
@@ -8,32 +9,21 @@
         <Description>.Net library for physical quantity handling</Description>
         <AssemblyVersion>0.2.0.0</AssemblyVersion>
         <FileVersion>$(AssemblyVersion)</FileVersion>
+
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\QuantitiesDotNet.Generators\QuantitiesDotNet.Generators.csproj">
+        <ProjectReference Include="../QuantitiesDotNet.Generators/QuantitiesDotNet.Generators.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\QuantitiesDotNet.Shared\PlatformCapabilities.cs" Link="PlatformCapabilities.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="..\..\LICENSE">
-        <Pack>True</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
-      <None Include="..\..\readme.md">
-        <Pack>True</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
-      <None Include="..\..\resource\icon.png">
-        <Pack>True</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
+      <None Include="../../LICENSE.txt" Pack="true" PackagePath="/" />
+      <None Include="../../readme.md" Pack="true" PackagePath="/" />
+      <None Include="../../resource/icon.png" Pack="true" PackagePath="/" />
     </ItemGroup>
 
     <ItemGroup>
@@ -42,11 +32,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="QHalfway_NoNamedDimensions.tt">
+      <None Update="Quantities/QHalfway_NoNamedDimensions.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>QHalfway_NoNamedDimensions.g.cs</LastGenOutput>
       </None>
-        <None Include="QHalfway_NoNamedDimensions.g.cs">
+        <None Include="Quantities/QHalfway_NoNamedDimensions.g.cs">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>QHalfway_NoNamedDimensions.tt</DependentUpon>
@@ -58,7 +48,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="QHalfway_NoNamedDimensions.g.cs">
+        <Compile Include="../QuantitiesDotNet.Shared/PlatformCapabilities.cs" Link="PlatformCapabilities.cs" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Compile Update="Quantities/QHalfway_NoNamedDimensions.g.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
         <DependentUpon>QHalfway_NoNamedDimensions.tt</DependentUpon>
