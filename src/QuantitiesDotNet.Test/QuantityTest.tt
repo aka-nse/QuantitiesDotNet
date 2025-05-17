@@ -1,0 +1,26 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+<#
+(string, string, string)[] scaleTestCases = [
+    ("QAcceleration", "MetrePerSquareSecond", "1.0"),
+];
+#>
+namespace QuantitiesDotNet;
+using Generic;
+
+partial class QuantityTest
+{
+    public static partial TheoryData<object, object> ScaleTestCases()
+    {
+        var data = new TheoryData<object, object>();
+<#  foreach(var (type, value, expected) in scaleTestCases) { #>
+        data.Add(new <#=type#>(1.0).<#=value#>, <#=expected#>);
+        data.Add(new <#=type#><decimal>(1.0m).<#=value#>, <#=expected#>m);
+<#  } #>
+        return data;
+    }
+}

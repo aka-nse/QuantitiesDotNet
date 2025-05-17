@@ -8,6 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Include="QuantityTest.g.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>QuantityTest.tt</DependentUpon>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
         <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0">
@@ -22,6 +30,25 @@
 
     <ItemGroup>
         <ProjectReference Include="..\QuantitiesDotNet\QuantitiesDotNet.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="QuantityTest.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>QuantityTest.g.cs</LastGenOutput>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="QuantityTest.g.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>QuantityTest.tt</DependentUpon>
+      </Compile>
     </ItemGroup>
 
 </Project>
