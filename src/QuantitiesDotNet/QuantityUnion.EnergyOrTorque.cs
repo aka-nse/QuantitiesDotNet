@@ -40,7 +40,7 @@ namespace QuantitiesDotNet
     }
 
     readonly partial struct QEnergy
-        : IQuantity<QEnergy>
+        : IQuantity<QEnergy, double>
 #if NET7_0_OR_GREATER
         , IDivisionOperators<QEnergy, QForce, QLength>
         , IDivisionOperators<QEnergy, QLength, QForce>
@@ -63,7 +63,7 @@ namespace QuantitiesDotNet
     }
 
     partial struct QTorque
-        : IQuantity<QTorque>
+        : IQuantity<QTorque, double>
 #if NET7_0_OR_GREATER
         , IDivisionOperators<QTorque, QForce, QLength>
         , IDivisionOperators<QTorque, QLength, QForce>

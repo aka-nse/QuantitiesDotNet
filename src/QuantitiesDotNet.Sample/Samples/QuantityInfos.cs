@@ -11,7 +11,7 @@ internal class QuantityInfos : IUsageSample
         const BindingFlags flags =
             BindingFlags.NonPublic | BindingFlags.Static;
 
-        var types = typeof(QuantityInfo).Assembly
+        var types = typeof(QuantityMetadata).Assembly
             .GetTypes()
             .Where(t => t.IsValueType
                 && !t.IsGenericType
@@ -19,7 +19,7 @@ internal class QuantityInfos : IUsageSample
         foreach (var type in types)
         {
             // for reflection of ref struct, explicitly named backing field is provided.
-            var info = type.GetField(nameof(QDimensionless._Info), flags)!.GetValue(null) as QuantityInfo;
+            var info = type.GetField(nameof(QDimensionless._Info), flags)!.GetValue(null) as QuantityMetadata;
 
             stdout.WriteLine($"{info?.Name,-24} (Dimension={info?.Dimension})");
         }
