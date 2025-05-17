@@ -125,19 +125,21 @@ internal abstract class QuantityImplementBuilderBase(
             /// <returns></returns>
             public static bool TryParse(string? s, IFormatProvider? provider, out {{TypeName}} result)
             {
+                result = default;
                 if(!QuantityParseInfo.TryCompile(s, out var info))
                 {
-                    result = default;
                     return false;
                 }
-                var (succeeded, value) = info.UnitSelector switch {
-                    {{UnitSymbols
-                            .Select(unit => $"\"{unit.ShortName}\" => ({TValue}.TryParse(info.Number, NumberStyles.Any, provider, out var x), From{unit.MajorName}(x!)),")
-                            .PreserveIndent()}}
-                    _ => (false, default({{TypeName}})),
-                };
-                result = value;
-                return succeeded;
+                if(!Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    return false;
+                }
+                if(!{{TValue}}.TryParse(info.Number, NumberStyles.Any, provider, out var x))
+                {
+                    return false;
+                }
+                result = new(x * unitMeta.Scale);
+                return true;
             }
 
             /// <summary>
@@ -232,8 +234,15 @@ internal abstract class QuantityImplementBuilderBase(
         sb.AppendLine($$"""
             #region unit definition implements
 
-            /// <summary> The unit informations dictionary which is keyed by unit symbols. </summary>
-            public static readonly ImmutableDictionary<string, {{unitInfo}}> UnitsBySymbol = GetUnitsBySymbol();
+            private readonly static Lazy<ImmutableDictionary<string, {{unitInfo}}>> _units
+                = new(GetUnitsBySymbol, LazyThreadSafetyMode.PublicationOnly);
+
+            /// <summary> Gets the unit informations dictionary which is keyed by unit symbols. </summary>
+            public static ImmutableDictionary<string, {{unitInfo}}> Units => _units.Value;
+
+            /// <summary> Gets the unit informations dictionary which is keyed by unit symbols. </summary>
+            public ImmutableDictionary<string, {{unitInfo}}> UnitsInstance => _units.Value;
+
             private static ImmutableDictionary<string, {{unitInfo}}> GetUnitsBySymbol()
             {
                 var builder = ImmutableDictionary.CreateBuilder<string, {{unitInfo}}>();
