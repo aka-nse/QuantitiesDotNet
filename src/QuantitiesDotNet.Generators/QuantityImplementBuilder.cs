@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 namespace QuantitiesDotNet.Generators;
 
 internal class QuantityImplementBuilder(
-    string TargetTypeName,
+    string TypeName,
     bool IsRefLikeType,
     QuantityDef QuantityDef,
     IList<UnitSymbolDef> UnitSymbols,
@@ -23,39 +23,28 @@ internal class QuantityImplementBuilder(
     private void Generate(StringBuilderWrapper sb)
     {
         sb.AppendLine($$"""
-#nullable enable
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-
 namespace QuantitiesDotNet
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(double))]
-    public partial struct {{TargetTypeName}}
+    public partial struct {{TypeName}}
 """); if (!IsRefLikeType) { sb.AppendLine($$"""
-        : IQuantity<{{TargetTypeName}}, double>
+        : IQuantity<{{TypeName}}, double>
     #if NET7_0_OR_GREATER
-        , IMultiplyOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
-        , IDivisionOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
-        , IDivisionOperators<{{TargetTypeName}}, {{TargetTypeName}}, double>
+        , IMultiplyOperators<{{TypeName}}, double, {{TypeName}}>
+        , IDivisionOperators<{{TypeName}}, double, {{TypeName}}>
+        , IDivisionOperators<{{TypeName}}, {{TypeName}}, double>
     #endif
 """); }
         sb.AppendLine($$"""
     {
         /// <summary>
-        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
+        /// Gets quantity metadata instance for <see cref="{{TypeName}}" />.
         /// </summary>
         public static QuantityMetadata Metadata => _Metadata;
 
         // for reflection of ref struct, explicitly named backing field is provided.
         internal static readonly QuantityMetadata _Metadata = new(
-            "{{TargetTypeName.Substring(1)}}",
+            "{{TypeName.Substring(1)}}",
             L : {{QuantityDef.L}},
             M : {{QuantityDef.M}},
             T : {{QuantityDef.T}},
@@ -65,18 +54,18 @@ namespace QuantitiesDotNet
             J : {{QuantityDef.J}});
 
         /// <summary>
-        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
+        /// Gets quantity metadata instance for <see cref="{{TypeName}}" />.
         /// </summary>
         public QuantityMetadata MetadataInstance => Metadata;
 
         private readonly double _RawValue;
 
         /// <summary>
-        /// The raw value of <see href="{{TargetTypeName}}" />.
+        /// The raw value of <see href="{{TypeName}}" />.
         /// </summary>
         public double RawValue => _RawValue;
 
-        internal {{TargetTypeName}}(double rawValue)
+        internal {{TypeName}}(double rawValue)
             => _RawValue = rawValue;
 
 """); GenerateBasicTypeShape(sb, isGeneric: false); sb.AppendLine($$"""
@@ -143,9 +132,9 @@ namespace QuantitiesDotNet
 """); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
 
 """); if (unit.ExportsShorthandSymbol) { sb.AppendLine($$"""
-            /// <summary> A symbol for <see cref="{{TargetTypeName}}" />. </summary>
+            /// <summary> A symbol for <see cref="{{TypeName}}" />. </summary>
             [CLSCompliant(false)]
-            public static readonly {{TargetTypeName}} {{unit.ShortName}} = new({{unit.Scale}});
+            public static readonly {{TypeName}} {{unit.ShortName}} = new({{unit.Scale}});
 
 """); } }
         sb.AppendLine($$"""
@@ -156,27 +145,27 @@ namespace QuantitiesDotNet
 #if NET7_0_OR_GREATER
 namespace QuantitiesDotNet.Generic
 {
-    public partial struct {{TargetTypeName}}<T>
+    public partial struct {{TypeName}}<T>
 """); if (!IsRefLikeType) { sb.AppendLine($$"""
-        : IQuantity<{{TargetTypeName}}<T>, T>
-        , IMultiplyOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
-        , IDivisionOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, T>
-        , IDivisionOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
+        : IQuantity<{{TypeName}}<T>, T>
+        , IMultiplyOperators<{{TypeName}}<T>, T, {{TypeName}}<T>>
+        , IDivisionOperators<{{TypeName}}<T>, {{TypeName}}<T>, T>
+        , IDivisionOperators<{{TypeName}}<T>, T, {{TypeName}}<T>>
 """); }
         sb.AppendLine($$"""
         where T : INumber<T>
     {
-        public static QuantityMetadata Metadata => {{TargetTypeName}}.Metadata;
-        public QuantityMetadata MetadataInstance => {{TargetTypeName}}.Metadata;
+        public static QuantityMetadata Metadata => {{TypeName}}.Metadata;
+        public QuantityMetadata MetadataInstance => {{TypeName}}.Metadata;
 
         private readonly T _RawValue;
 
         /// <summary>
-        /// The raw value of <see href="{{TargetTypeName}}{T}" />.
+        /// The raw value of <see href="{{TypeName}}{T}" />.
         /// </summary>
         public T RawValue => _RawValue;
 
-        internal {{TargetTypeName}}(T rawValue)
+        internal {{TypeName}}(T rawValue)
             => _RawValue = rawValue;
 
 """); GenerateBasicTypeShape(sb, isGeneric: true); sb.AppendLine($$"""
@@ -231,9 +220,9 @@ namespace QuantitiesDotNet.Generic
 """); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
 
 """); if (unit.ExportsShorthandSymbol) { sb.AppendLine($$"""
-            /// <summary> A symbol for <see cref="{{TargetTypeName}}" />. </summary>
+            /// <summary> A symbol for <see cref="{{TypeName}}" />. </summary>
             [CLSCompliant(false)]
-            public static readonly {{TargetTypeName}} {{unit.ShortName}} = new({{unit.Scale}});
+            public static readonly {{TypeName}} {{unit.ShortName}} = new({{unit.Scale}});
 
 """); } }
         sb.AppendLine($$"""
@@ -244,9 +233,12 @@ namespace QuantitiesDotNet.Generic
     }
 
 
+
+
+
     private void GenerateBasicTypeShape(StringBuilderWrapper sb, bool isGeneric)
     {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
+        var targetTypeName = TypeName + (isGeneric ? "<T>" : "");
         var entityTypeName = isGeneric ? "T" : "double";
         if (IsRefLikeType)
         {
@@ -385,7 +377,7 @@ namespace QuantitiesDotNet.Generic
 
     private void GenerateUnitDefinitionsShape(StringBuilderWrapper sb, bool isGeneric)
     {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
+        var targetTypeName = TypeName + (isGeneric ? "<T>" : "");
         var entityTypeName = isGeneric ? "T" : "double";
         var unitInfoTypeName = isGeneric ? "UnitMetadata<T>" : "UnitMetadata<double>";
         var getUnitScaleFormat = isGeneric ? "T.CreateSaturating({0})" : "{0}";
@@ -436,7 +428,7 @@ namespace QuantitiesDotNet.Generic
 
     private void GenerateSelfOperatorsShape(StringBuilderWrapper sb, bool isGeneric)
     {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
+        var targetTypeName = TypeName + (isGeneric ? "<T>" : "");
         var entityTypeName = isGeneric ? "T" : "double";
         var one = isGeneric ? "T.One" : "1.0";
         sb.AppendLine($$"""
@@ -523,12 +515,4 @@ namespace QuantitiesDotNet.Generic
     }
 
 
-    private class StringBuilderWrapper(StringBuilder sb, CancellationToken token)
-    {
-        public void AppendLine(string text)
-        {
-            token.ThrowIfCancellationRequested();
-            sb.AppendLine(text);
-        }
-    }
 }

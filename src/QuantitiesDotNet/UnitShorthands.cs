@@ -30,7 +30,8 @@ namespace QuantitiesDotNet.Generic
     /// and they will be exposed into user code namespace.
     /// And using non-generic version together is not available because of name conflict.
     /// </summary>
-    public static partial class UnitShorthands
+    public static partial class UnitShorthands<T>
+        where T : INumber<T>
     {
     }
 }

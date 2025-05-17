@@ -1,6 +1,6 @@
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using SourceGeneratorToolkit;
 
 namespace QuantitiesDotNet.Generators;
 
@@ -46,16 +46,46 @@ public partial class Generator : IIncrementalGenerator
         var operationDefs = attributes
             .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, qOpAttr));
 
-        var generator = new QuantityImplementBuilder(
+        var (nonGeneric, generic) = QuantityImplementBuilderBase.Create(
             info.TargetSymbol.Name,
             info.TargetSymbol.IsRefLikeType,
             QuantityDef.GetQuantityDef(qDef),
             [.. unitDefs.SelectMany(UnitSymbolDef.GetUnitSymbols)],
             [.. operationDefs.Select(static attr => new UnitOperationDef(attr))]);
-        var sb = new StringBuilder();
-        generator.Generate(sb, context.CancellationToken);
+        var sb = new SourceBuilderSlim();
+        sb.AppendLine("""
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Globalization;
+            using System.Numerics;
+            using System.Runtime.InteropServices;
+            using System.Text;
+            
+            namespace QuantitiesDotNet
+            {
+            """);
+        sb.PushIndent("    ");
+        nonGeneric.Generate(sb);
+        sb.PopIndent();
+        sb.AppendLine("""
+            }
+            
+            #if NET7_0_OR_GREATER
+            namespace QuantitiesDotNet.Generic
+            {
+            """);
+        sb.PushIndent("    ");
+        generic.Generate(sb);
+        sb.PopIndent();
+        sb.AppendLine("}");
+        sb.AppendLine("#endif");
+        var source = sb.Build();
         context.AddSource(
             $"{info.TargetSymbol.Name}.g.cs",
-            sb.ToString());
+            source);
     }
 }
