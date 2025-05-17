@@ -182,16 +182,20 @@ internal abstract class QuantityImplementBuilderBase(
                 {
                     throw new FormatException();
                 }
-
-                var (value, unit) = info.UnitSelector switch {
-                    {{UnitSymbols
-                            .Select(unit => $"\"{unit.ShortName}\" => ({unit.MajorName}, \"{unit.ShortName}\"),")
-                            .PreserveIndent()}}
-                    "" => ({{PrimaryUnit.MajorName}}, "{{PrimaryUnit.ShortName}}"),
-                    _ => throw new FormatException(),
-                };
-                var number = string.Format(formatProvider, "{0:" + info.NumberFormat + "}", value);
-                return (info, number, unit);
+                {{TValue}} number;
+                string unit;
+                if(Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    number = _rawValue / unitMeta.Scale;
+                    unit = unitMeta.UnitSymbol;
+                }
+                else
+                {
+                    number = {{PrimaryUnit.MajorName}};
+                    unit = "{{PrimaryUnit.ShortName}}";
+                }
+                var numberText = string.Format(formatProvider, "{0:" + info.NumberFormat + "}", number);
+                return (info, numberText, unit);
             }
 
             /// <inheritdoc />
@@ -223,7 +227,7 @@ internal abstract class QuantityImplementBuilderBase(
             public override bool Equals([NotNullWhen(true)] object? obj)
                 => obj is {{TypeName}} other && Equals(this, other);
 
-            #endregion  // basic type implements
+            #endregion basic type implements
 
         """);
     }
@@ -289,16 +293,16 @@ internal abstract class QuantityImplementBuilderBase(
             #region arithmetic operator implements
 
             /** <inheritdoc /> */ public static {{TypeName}} AdditiveIdentity       => default;
-            /** <inheritdoc /> */ public static {{TValue}}   MultiplicativeIdentity => {{OneValue}};
+            /** <inheritdoc /> */ public static {{TValue}} MultiplicativeIdentity => {{OneValue}};
             /** <inheritdoc /> */ public static {{TypeName}} operator +({{TypeName}} value) => value;
             /** <inheritdoc /> */ public static {{TypeName}} operator -({{TypeName}} value) => new(-value._rawValue);
             /** <inheritdoc /> */ public static {{TypeName}} operator +({{TypeName}} x, {{TypeName}} y) => new (x._rawValue + y._rawValue);
             /** <inheritdoc /> */ public static {{TypeName}} operator -({{TypeName}} x, {{TypeName}} y) => new (x._rawValue - y._rawValue);
             /** <inheritdoc /> */ public static {{TypeName}} operator %({{TypeName}} x, {{TypeName}} y) => new(x._rawValue % y._rawValue);
-            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TValue}}   x, {{TypeName}} y) => new (x * y._rawValue);
-            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TypeName}} x, {{TValue}}   y) => new (x._rawValue * y);
-            /** <inheritdoc /> */ public static {{TValue}}   operator /({{TypeName}} x, {{TypeName}} y) => x._rawValue / y._rawValue;
-            /** <inheritdoc /> */ public static {{TypeName}} operator /({{TypeName}} x, {{TValue}}   y) => new(x._rawValue / y);
+            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TValue}} x, {{TypeName}} y) => new (x * y._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TypeName}} x, {{TValue}} y) => new (x._rawValue * y);
+            /** <inheritdoc /> */ public static {{TValue}} operator /({{TypeName}} x, {{TypeName}} y) => x._rawValue / y._rawValue;
+            /** <inheritdoc /> */ public static {{TypeName}} operator /({{TypeName}} x, {{TValue}} y) => new(x._rawValue / y);
 
             #endregion arithmetic operator implements
 
