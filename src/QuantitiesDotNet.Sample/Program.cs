@@ -2,6 +2,9 @@
 using QuantitiesDotNet;
 using QuantitiesDotNet.Samples;
 
+
+Console.WriteLine(QLength.FromMetre(1).Millimetre);
+
 var samples = new IUsageSample[]
 {
     new BasicUsage(),

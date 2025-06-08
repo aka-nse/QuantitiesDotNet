@@ -5,8 +5,114 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".g.cs" #>
 <#
-(string, string, string)[] scaleTestCases = [
-    ("QAcceleration", "MetrePerSquareSecond", "1.0"),
+(string, string, double)[] scaleTestCases = [
+    ("QAcceleration", "MetrePerSquareSecond", 1.0),
+    ("QAcceleration", "MillimetrePerSquareSecond", 1.0e-3),
+    ("QAcceleration", "KilometrePerSquareSecond" , 1.0e+3),
+    ("QAngle", "Radian", 1.0),
+    ("QAngle", "Degree", 2 * Math.PI / 360),
+    ("QAngle", "Millidegree", 1e-3 * 2 * Math.PI / 360),
+    ("QAngularAcceleration", "RadianPerSquareSecond", 1.0),
+    ("QAngularAcceleration", "DegreePerSquareSecond", 2 * Math.PI / 360),
+    ("QAngularAcceleration", "MillidegreePerSquareSecond", 1e-3 * 2 * Math.PI / 360),
+    ("QAngularVelocity", "RadianPerSecond", 1.0),
+    ("QAngularVelocity", "DegreePerSecond", 2 * Math.PI / 360),
+    ("QAngularVelocity", "MillidegreePerSecond", 1e-3 * 2 * Math.PI / 360),
+    ("QAngularVelocity", "RevolutionPerMinute", 2 * Math.PI / 60),
+    ("QArea", "Metre2", 1.0),
+    ("QArea", "Centimetre2", Math.Pow(1e-2, 2)),
+    ("QArea", "Millimetre2", Math.Pow(1e-3, 2)),
+    ("QArea", "Micrometre2", Math.Pow(1e-6, 2)),
+    ("QArea", "Nanometre2", Math.Pow(1e-9, 2)),
+    ("QArea", "Kilometre2", Math.Pow(1e+3, 2)),
+    ("QCatalyticActivity", "Katal", 1.0),
+    ("QCatalyticActivity", "Millikatal", 1e-3),
+    ("QCatalyticActivity", "Microkatal", 1e-6),
+    ("QCatalyticActivity", "Nanokatal", 1e-9),
+    ("QCatalyticActivity", "Unit", 1e-6 / 60),
+    ("QCatalyticActivity", "Milliunit", 1e-3 * 1e-6 / 60),
+    ("QDensity", "KilogramPerCubicMetre", 1.0),
+    ("QDensity", "GramPerCubicCentimetre", 1e-3 / Math.Pow(1e-2, 3)),
+    ("QDimensionless", "Raw", 1.0),
+    ("QElectricCapacity", "Farad", 1.0),
+    ("QElectricCapacity", "Millifarad", 1e-3),
+    ("QElectricCapacity", "Microfarad", 1e-6),
+    ("QElectricCapacity", "Nanofarad", 1e-9),
+    ("QElectricCapacity", "Picofarad", 1e-12),
+    ("QElectricCharge", "Coulomb", 1.0),
+    ("QElectricCharge", "Millicoulomb", 1e-3),
+    ("QElectricCharge", "Microcoulomb", 1e-6),
+    ("QElectricCharge", "Nanocoulomb", 1e-9),
+    ("QElectricCharge", "Picocoulomb", 1e-12),
+    ("QElectricCharge", "Kilocoulomb", 1e+3),
+    ("QElectricCharge", "AmpareHour", 3600),
+    ("QElectricCharge", "MilliampareHour", 1e-3 * 3600),
+    ("QElectricCharge", "KiloampareHour", 1e+3 * 3600),
+    ("QElectricConductance", "Siemens", 1.0),
+    ("QElectricConductance", "Millisiemens", 1e-3),
+    ("QElectricConductance", "Microsiemens", 1e-6),
+    ("QElectricConductance", "Nanosiemens", 1e-9),
+    ("QElectricConductivity", "SiemensPerMetre", 1.0),
+    ("QElectricConductivity", "MillisiemensPerMetre", 1e-3),
+    ("QElectricConductivity", "MicrosiemensPerMetre", 1e-6),
+    ("QElectricConductivity", "NanosiemensPerMetre", 1e-9),
+    ("QElectricConductivity", "PicosiemensPerMetre", 1e-12),
+    ("QElectricCurrent", "Ampere", 1.0),
+    ("QElectricCurrent", "Milliampere", 1e-3),
+    ("QElectricCurrent", "Microampere", 1e-6),
+    ("QElectricCurrent", "Nanoampere", 1e-9),
+    ("QElectricCurrent", "Picoampere", 1e-12),
+    ("QElectricCurrent", "Kiloampere", 1e+3),
+    ("QElectricFieldStrength", "VoltPerMetre", 1.0),
+    ("QElectricFieldStrength", "MillivoltPerMetre", 1e-3),
+    ("QElectricFieldStrength", "MicrovoltPerMetre", 1e-6),
+    ("QElectricFieldStrength", "NanovoltPerMetre", 1e-9),
+    ("QElectricFieldStrength", "KilovoltPerMetre", 1e+3),
+    ("QElectricFluxDensity", "CoulombPerSquareMetre", 1.0),
+    ("QElectricFluxDensity", "MillicoulombPerSquareMetre", 1e-3),
+    ("QElectricFluxDensity", "MicrocoulombPerSquareMetre", 1e-6),
+    ("QElectricFluxDensity", "NanocoulombPerSquareMetre", 1e-9),
+    ("QElectricFluxDensity", "PicocoulombPerSquareMetre", 1e-12),
+    ("QElectricIndactance", "Henry", 1.0),
+    ("QElectricIndactance", "Millihenry", 1e-3),
+    ("QElectricIndactance", "Microhenry", 1e-6),
+    ("QElectricIndactance", "Nanohenry", 1e-9),
+    ("QElectricIndactance", "Picohenry", 1e-12),
+    ("QElectricResistance", "Ohm", 1.0),
+    ("QElectricResistance", "Milliohm", 1e-3),
+    ("QElectricResistance", "Kiloohm", 1e+3),
+    ("QElectricResistance", "Megaohm", 1e+6),
+    ("QElectricResistance", "Gigaohm", 1e+9),
+    ("QElectricVoltage", "Volt", 1.0),
+    ("QElectricVoltage", "Millivolt", 1e-3),
+    ("QElectricVoltage", "Microvolt", 1e-6),
+    ("QElectricVoltage", "Kilovolt", 1e+3),
+    ("QElectricVoltage", "Megavolt", 1e+6),
+    ("QEnergy", "Joule", 1.0),
+    ("QEnergy", "Millijoule", 1e-3),
+    ("QEnergy", "Kilojoule", 1e+3),
+    ("QEnergy", "Megajoule", 1e+6),
+    ("QEnergy", "Gigajoule", 1e+9),
+    ("QEnergy", "ElectronVolt", 1.602176634e-19),
+    ("QEnergy", "MillielectronVolt", 1e-3 * 1.602176634e-19),
+    ("QEnergy", "KiloelectronVolt", 1e+3 * 1.602176634e-19),
+    ("QEnergy", "MegaelectronVolt", 1e+6 * 1.602176634e-19),
+    ("QEnergy", "GigaelectronVolt", 1e+9 * 1.602176634e-19),
+    ("QForce", "Newton", 1.0),
+    ("QForce", "Millinewton", 1e-3),
+    ("QForce", "Kilonewton", 1e+3),
+    ("QForce", "Meganewton", 1e+6),
+    ("QFrequency", "Hertz", 1.0),
+    ("QFrequency", "Kilohertz", 1+3),
+    ("QFrequency", "Megahertz", 1+6),
+    ("QFrequency", "Gigahertz", 1+9),
+    ("QFrequency", "Terahertz", 1+12),
+    // ("", "", 1.0),
+    // ("", "", 1.0),
+    // ("", "", 1.0),
+    // ("", "", 1.0),
+    // ("", "", 1.0),
+    // ("", "", 1.0),
 ];
 #>
 namespace QuantitiesDotNet;
@@ -14,12 +120,20 @@ using Generic;
 
 partial class QuantityTest
 {
-    public static partial TheoryData<object, object> ScaleTestCases()
+    public static partial TheoryData<object, object> ScaleTestCases_NonGeneric()
     {
         var data = new TheoryData<object, object>();
 <#  foreach(var (type, value, expected) in scaleTestCases) { #>
-        data.Add(new <#=type#>(1.0).<#=value#>, <#=expected#>);
-        data.Add(new <#=type#><decimal>(1.0m).<#=value#>, <#=expected#>m);
+        data.Add(new <#=type#>(<#=expected#>), <#=type#>.From<#=value#>(1.0));
+<#  } #>
+        return data;
+    }
+
+    public static partial TheoryData<object, object> ScaleTestCases_Generic()
+    {
+        var data = new TheoryData<object, object>();
+<#  foreach(var (type, value, expected) in scaleTestCases) { #>
+        data.Add(new <#=type#><decimal>(<#=expected#>m), <#=type#><decimal>.From<#=value#>(1.0m));
 <#  } #>
         return data;
     }
