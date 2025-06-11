@@ -44,7 +44,7 @@ public class UnitCalculationsTest
         var time_ = QTime.FromSecond(1);
         var torqu = QTorque.FromNewtonMetre(1);
         var speed = QSpeed.FromMetrePerSecond(1);
-        var volum = QVolume.FromCubicMetre(1);
+        var volum = QVolume.FromMetre3(1);
 
         Assert.Equal(time_ * accel, speed);
         Assert.Equal(time_ * angac, angvl);
