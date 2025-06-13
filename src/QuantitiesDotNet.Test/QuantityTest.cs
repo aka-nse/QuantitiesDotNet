@@ -1,7 +1,9 @@
-﻿namespace QuantitiesDotNet;
+namespace QuantitiesDotNet;
 
 public partial class QuantityTest
 {
+    #region Scale
+
     public static partial TheoryData<object, object> ScaleTestCases_NonGeneric();
 
     [Theory]
@@ -18,4 +20,21 @@ public partial class QuantityTest
     public void Scale_Generic<T>(T expected, T viaQuantity)
         where T : IQuantity<T, decimal>
         => Assert.Equal((double)expected.RawValue, (double)viaQuantity.RawValue, 1e-10);
+
+    #endregion Scale
+
+    #region Metadata
+    
+    public static partial TheoryData<IQuantity, (int L, int M, int T, int I, int Th, int N, int J)> MetadataTestCases();
+
+    [Theory]
+    [MemberData(nameof(MetadataTestCases))]
+    public void Metadata<TQuantity>(TQuantity value, (int L, int M, int T, int I, int Th, int N, int J) dimensions)
+        where TQuantity : IQuantity
+    {
+        var metadata = value.MetadataInstance;
+        Assert.NotNull(metadata);
+    }
+
+    #endregion Metadata
 }

@@ -1,7 +1,7 @@
 namespace QuantitiesDotNet;
 using Generic;
 
-partial class QuantityTest
+public partial class QuantityTest
 {
     public static partial TheoryData<object, object> ScaleTestCases_NonGeneric()
     {
@@ -400,4 +400,98 @@ partial class QuantityTest
         data.Add(new QVolume<decimal>(0.001m), QVolume<decimal>.FromLitre(1.0m));
         return data;
     }
+}
+
+
+public partial class QuantityTest
+{
+    public static partial TheoryData<IQuantity, (int L, int M, int T, int I, int Th, int N, int J)> MetadataTestCases()
+        => new () {
+            { default(QAcceleration), (1, 0, -2, 0, 0, 0, 0) },
+            { default(QAcceleration<decimal>), (1, 0, -2, 0, 0, 0, 0) },
+            { default(QAngle), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QAngle<decimal>), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QAngularAcceleration), (0, 0, -2, 0, 0, 0, 0) },
+            { default(QAngularAcceleration<decimal>), (0, 0, -2, 0, 0, 0, 0) },
+            { default(QAngularVelocity), (0, 0, -1, 0, 0, 0, 0) },
+            { default(QAngularVelocity<decimal>), (0, 0, -1, 0, 0, 0, 0) },
+            { default(QArea), (2, 0, 0, 0, 0, 0, 0) },
+            { default(QArea<decimal>), (2, 0, 0, 0, 0, 0, 0) },
+            { default(QCatalyticActivity), (0, 0, -1, 0, 0, 1, 0) },
+            { default(QCatalyticActivity<decimal>), (0, 0, -1, 0, 0, 1, 0) },
+            { default(QDensity), (-3, 1, 0, 0, 0, 0, 0) },
+            { default(QDensity<decimal>), (-3, 1, 0, 0, 0, 0, 0) },
+            { default(QDimensionless), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QDimensionless<decimal>), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QElectricCapacity), (-2, -1, 4, 2, 0, 0, 0) },
+            { default(QElectricCapacity<decimal>), (-2, -1, 4, 2, 0, 0, 0) },
+            { default(QElectricCharge), (0, 0, 1, 1, 0, 0, 0) },
+            { default(QElectricCharge<decimal>), (0, 0, 1, 1, 0, 0, 0) },
+            { default(QElectricConductance), (-2, -1, 3, 2, 0, 0, 0) },
+            { default(QElectricConductance<decimal>), (-2, -1, 3, 2, 0, 0, 0) },
+            { default(QElectricConductivity), (-3, -1, 3, 2, 0, 0, 0) },
+            { default(QElectricConductivity<decimal>), (-3, -1, 3, 2, 0, 0, 0) },
+            { default(QElectricCurrent), (0, 0, 0, 1, 0, 0, 0) },
+            { default(QElectricCurrent<decimal>), (0, 0, 0, 1, 0, 0, 0) },
+            { default(QElectricFieldStrength), (1, 1, -3, -1, 0, 0, 0) },
+            { default(QElectricFieldStrength<decimal>), (1, 1, -3, -1, 0, 0, 0) },
+            { default(QElectricFluxDensity), (0, 0, 1, 1, 0, 0, 0) },
+            { default(QElectricFluxDensity<decimal>), (0, 0, 1, 1, 0, 0, 0) },
+            { default(QElectricIndactance), (2, 1, -2, -2, 0, 0, 0) },
+            { default(QElectricIndactance<decimal>), (2, 1, -2, -2, 0, 0, 0) },
+            { default(QElectricResistance), (2, 1, -3, -2, 0, 0, 0) },
+            { default(QElectricResistance<decimal>), (2, 1, -3, -2, 0, 0, 0) },
+            { default(QElectricVoltage), (2, 1, -3, -1, 0, 0, 0) },
+            { default(QElectricVoltage<decimal>), (2, 1, -3, -1, 0, 0, 0) },
+            { default(QEnergy), (2, 1, -2, 0, 0, 0, 0) },
+            { default(QEnergy<decimal>), (2, 1, -2, 0, 0, 0, 0) },
+            { default(QForce), (1, 1, -2, 0, 0, 0, 0) },
+            { default(QForce<decimal>), (1, 1, -2, 0, 0, 0, 0) },
+            { default(QFrequency), (0, 0, -1, 0, 0, 0, 0) },
+            { default(QFrequency<decimal>), (0, 0, -1, 0, 0, 0, 0) },
+            { default(QHeatCapacity), (2, 1, -2, 0, -1, 0, 0) },
+            { default(QHeatCapacity<decimal>), (2, 1, -2, 0, -1, 0, 0) },
+            { default(QLength), (1, 0, 0, 0, 0, 0, 0) },
+            { default(QLength<decimal>), (1, 0, 0, 0, 0, 0, 0) },
+            { default(QLuminance), (-2, 0, 0, 0, 0, 0, 1) },
+            { default(QLuminance<decimal>), (-2, 0, 0, 0, 0, 0, 1) },
+            { default(QLuminousFlux), (0, 0, 0, 0, 0, 0, 1) },
+            { default(QLuminousFlux<decimal>), (0, 0, 0, 0, 0, 0, 1) },
+            { default(QLuminousIntensity), (0, 0, 0, 0, 0, 0, 1) },
+            { default(QLuminousIntensity<decimal>), (0, 0, 0, 0, 0, 0, 1) },
+            { default(QMagneticFieldStrength), (0, 0, -1, 1, 0, 0, 0) },
+            { default(QMagneticFieldStrength<decimal>), (0, 0, -1, 1, 0, 0, 0) },
+            { default(QMagneticFlux), (2, 1, -2, -1, 0, 0, 0) },
+            { default(QMagneticFlux<decimal>), (2, 1, -2, -1, 0, 0, 0) },
+            { default(QMagneticFluxDensity), (0, 1, -2, -1, 0, 0, 0) },
+            { default(QMagneticFluxDensity<decimal>), (0, 1, -2, -1, 0, 0, 0) },
+            { default(QMass), (0, 1, 0, 0, 0, 0, 0) },
+            { default(QMass<decimal>), (0, 1, 0, 0, 0, 0, 0) },
+            { default(QMassFlowRate), (0, 1, -1, 0, 0, 0, 0) },
+            { default(QMassFlowRate<decimal>), (0, 1, -1, 0, 0, 0, 0) },
+            { default(QMomentum), (1, 1, -1, 0, 0, 0, 0) },
+            { default(QMomentum<decimal>), (1, 1, -1, 0, 0, 0, 0) },
+            { default(QPower), (2, 1, -3, 0, 0, 0, 0) },
+            { default(QPower<decimal>), (2, 1, -3, 0, 0, 0, 0) },
+            { default(QPressure), (-1, 1, -2, 0, 0, 0, 0) },
+            { default(QPressure<decimal>), (-1, 1, -2, 0, 0, 0, 0) },
+            { default(QSolidAngle), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QSolidAngle<decimal>), (0, 0, 0, 0, 0, 0, 0) },
+            { default(QSpatialFrequency), (-1, 0, 0, 0, 0, 0, 0) },
+            { default(QSpatialFrequency<decimal>), (-1, 0, 0, 0, 0, 0, 0) },
+            { default(QSpecificHeatCapacity), (2, 0, -2, 0, -1, 0, 0) },
+            { default(QSpecificHeatCapacity<decimal>), (2, 0, -2, 0, -1, 0, 0) },
+            { default(QSpeed), (1, 0, -1, 0, 0, 0, 0) },
+            { default(QSpeed<decimal>), (1, 0, -1, 0, 0, 0, 0) },
+            { default(QSubstanceAmount), (0, 0, 0, 0, 0, 1, 0) },
+            { default(QSubstanceAmount<decimal>), (0, 0, 0, 0, 0, 1, 0) },
+            { default(QTemperature), (0, 0, 0, 0, 1, 0, 0) },
+            { default(QTemperature<decimal>), (0, 0, 0, 0, 1, 0, 0) },
+            { default(QTime), (0, 0, 1, 0, 0, 0, 0) },
+            { default(QTime<decimal>), (0, 0, 1, 0, 0, 0, 0) },
+            { default(QTorque), (2, 1, -2, 0, 0, 0, 0) },
+            { default(QTorque<decimal>), (2, 1, -2, 0, 0, 0, 0) },
+            { default(QVolume), (3, 0, 0, 0, 0, 0, 0) },
+            { default(QVolume<decimal>), (3, 0, 0, 0, 0, 0, 0) },
+        };
 }

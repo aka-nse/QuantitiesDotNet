@@ -4,7 +4,8 @@ public interface IQuantity
     : IFormattable
 {
 #if NET7_0_OR_GREATER
-    public static abstract QuantityMetadata Metadata { get; }
+    public static virtual QuantityMetadata Metadata
+        => throw new NotSupportedException("This type does not support Metadata property. Use MetadataInstance instead.");
 #endif
     public QuantityMetadata MetadataInstance { get; }
 
