@@ -34,6 +34,13 @@ public partial class QuantityTest
     {
         var metadata = value.MetadataInstance;
         Assert.NotNull(metadata);
+        Assert.Equal(dimensions.L, metadata.Dimension.L);
+        Assert.Equal(dimensions.M, metadata.Dimension.M);
+        Assert.Equal(dimensions.T, metadata.Dimension.T);
+        Assert.Equal(dimensions.I, metadata.Dimension.I);
+        Assert.Equal(dimensions.Th, metadata.Dimension.Th);
+        Assert.Equal(dimensions.N, metadata.Dimension.N);
+        Assert.Equal(dimensions.J, metadata.Dimension.J);
     }
 
     #endregion Metadata
