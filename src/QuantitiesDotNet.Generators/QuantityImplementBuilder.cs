@@ -1,4 +1,4 @@
-﻿using SourceGeneratorToolkit;
+using SourceGeneratorToolkit;
 namespace QuantitiesDotNet.Generators;
 
 
@@ -103,12 +103,6 @@ internal abstract class QuantityImplementBuilderBase(
         }
         sb.AppendLine($$"""
             #region basic type implements
-        
-            /// <inheritdoc />
-            public int CompareTo(object? obj)
-                => obj is {{TypeName}} other
-                ? Compare(this, other)
-                : throw new ArgumentException(nameof(obj));
 
             /// <inheritdoc />
             public int CompareTo({{TypeName}} other) => Compare(this, other);
@@ -318,13 +312,14 @@ internal abstract class QuantityImplementBuilderBase(
             /// <param name="x"></param>
             /// <param name="y"></param>
             /// <returns></returns>
-            public static bool Equals(in {{TypeName}} x, in {{TypeName}} y) => x._rawValue == y._rawValue;
+            public static bool Equals({{TypeName}} x, {{TypeName}} y)
+                => x._rawValue == y._rawValue;
 
             /// <summary> Determines which value is greater than another. </summary>
             /// <param name="x"></param>
             /// <param name="y"></param>
             /// <returns></returns>
-            public static int Compare(in {{TypeName}} x, in {{TypeName}} y)
+            public static int Compare({{TypeName}} x, {{TypeName}} y)
             {
                 if (x._rawValue == y._rawValue) { return 0; }
                 return x._rawValue < y._rawValue ? -1 : 1;

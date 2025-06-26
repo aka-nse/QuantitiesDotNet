@@ -1,0 +1,80 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+namespace QuantitiesDotNet;
+using Generic;
+
+<#
+DimensionMetadata[] metadataTestCases = [
+    new ("Acceleration", L: +1, M: 0, T: -2),
+    new ("Angle", L: 0, M: 0, T: 0),
+    new ("AngularAcceleration", L: 0, M: 0, T: -2),
+    new ("AngularVelocity", L: 0, M: 0, T: -1),
+    new ("Area", L: +2, M: 0, T: 0),
+    new ("CatalyticActivity", L: 0, M: 0, T: -1, N: +1),
+    new ("Density", L: -3, M: +1, T: 0),
+    new ("Dimensionless"),
+    new ("ElectricCapacity", L: -2, M: -1, T: +4, I: +2),
+    new ("ElectricCharge", L: 0, M: 0, T: +1, I: +1),
+    new ("ElectricConductance", L: -2, M: -1, T: +3, I: +2),
+    new ("ElectricConductivity", L: -3, M: -1, T: +3, I: +2),
+    new ("ElectricCurrent", L: 0, M: 0, T: 0, I: +1),
+    new ("ElectricFieldStrength", L: +1, M: +1, T: -3, I: -1),
+    new ("ElectricFluxDensity", L: -2, M: 0, T: +1, I: +1),
+    new ("ElectricIndactance", L: +2, M: +1, T: -2, I: -2),
+    new ("ElectricResistance", L: +2, M: +1, T: -3, I: -2),
+    new ("ElectricVoltage", L: +2, M: +1, T: -3, I: -1),
+    new ("Energy", L: +2, M: +1, T: -2),
+    new ("Force", L: +1, M: +1, T: -2),
+    new ("Frequency", L: 0, M: 0, T: -1),
+    new ("HeatCapacity", L: +2, M: +1, T: -2, Th: -1),
+    new ("Length", L: +1, M: 0, T: 0),
+    new ("Luminance", L: -2, J: +1),
+    new ("LuminousFlux", J: +1),
+    new ("LuminousIntensity", J: +1),
+    new ("MagneticFieldStrength", L: -1, M: 0, T: 0, I: +1),
+    new ("MagneticFlux", L: +2, M: +1, T: -2, I: -1),
+    new ("MagneticFluxDensity", M: +1, T: -2, I: -1),
+    new ("Mass", M: +1),
+    new ("MassFlowRate", M: +1, T: -1),
+    new ("Momentum", L: +1, M: +1, T: -1),
+    new ("Power", L: +2, M: +1, T: -3),
+    new ("Pressure", L: -1, M: +1, T: -2),
+    new ("SolidAngle"),
+    new ("SpatialFrequency", L: -1),
+    new ("SpecificHeatCapacity", L: +2, T: -2, Th: -1),
+    new ("Speed", L: +1, T: -1),
+    new ("SubstanceAmount", N: +1),
+    new ("Temperature", Th: +1),
+    new ("Time", T: +1),
+    new ("Torque", L: +2, M: +1, T: -2),
+    new ("Volume", L: +3),
+];
+#>
+public partial class QuantityTest
+{
+    public static partial TheoryData<IQuantity, (int L, int M, int T, int I, int Th, int N, int J)> MetadataTestCases()
+        => new () {
+<#  foreach(var (name, l, m, t, i, th, n, j) in metadataTestCases) { #>
+            { default(Q<#=name#>), (<#=l#>, <#=m#>, <#=t#>, <#=i#>, <#=th#>, <#=n#>, <#=j#>) },
+            { default(Q<#=name#><decimal>), (<#=l#>, <#=m#>, <#=t#>, <#=i#>, <#=th#>, <#=n#>, <#=j#>) },
+<#  } #>
+        };
+}
+<#+
+public record DimensionMetadata(string Name, int L = 0, int M = 0, int T = 0, int I = 0, int Th = 0, int N = 0, int J = 0)
+{
+    public string Name { get; } = Name;
+    public int L { get; } = L;
+    public int M { get; } = M;
+    public int T { get; } = T;
+    public int I { get; } = I;
+    public int Th { get; } = Th;
+    public int N { get; } = N;
+    public int J { get; } = J;
+}
+
+#>

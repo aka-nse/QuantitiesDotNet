@@ -32,4 +32,20 @@ public interface IQuantity<TSelf, T>
     where TSelf : IQuantity<TSelf, T>
 {
     public T RawValue { get; }
+
+#if NET7_0_OR_GREATER
+
+    /// <summary> Determines whether the 2 values are same or not. </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
+    public static abstract bool Equals(TSelf x, TSelf y);
+
+    /// <summary> Determines which value is greater than another. </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
+    public static abstract int Compare(TSelf x, TSelf y);
+
+#endif
 }
