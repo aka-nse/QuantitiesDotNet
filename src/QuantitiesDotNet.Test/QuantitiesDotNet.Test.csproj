@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -22,6 +22,25 @@
 
     <ItemGroup>
         <ProjectReference Include="..\QuantitiesDotNet\QuantitiesDotNet.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="QuantityTest.TypeArgumentProvider.tt" LastGenOutput="QuantityTest.TypeArgumentProvider.g.cs" Generator="TextTemplatingFileGenerator" />
+        <Compile Update="QuantityTest.TypeArgumentProvider.g.cs" DependentUpon="QuantityTest.TypeArgumentProvider.tt" DesignTime="True" AutoGen="True" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="QuantityTest.Metadata.tt" LastGenOutput="QuantityTest.Metadata.g.cs" Generator="TextTemplatingFileGenerator" />
+        <Compile Update="QuantityTest.Metadata.g.cs" DependentUpon="QuantityTest.Metadata.tt" DesignTime="True" AutoGen="True" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="QuantityTest.Scale.tt" LastGenOutput="QuantityTest.Scale.g.cs" Generator="TextTemplatingFileGenerator" />
+        <Compile Update="QuantityTest.Scale.g.cs" DependentUpon="QuantityTest.Scale.tt" DesignTime="True" AutoGen="True" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
     </ItemGroup>
 
 </Project>

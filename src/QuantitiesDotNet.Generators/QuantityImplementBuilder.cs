@@ -1,534 +1,589 @@
-using System.Text;
-using Microsoft.CodeAnalysis;
-
+using SourceGeneratorToolkit;
 namespace QuantitiesDotNet.Generators;
 
-internal class QuantityImplementBuilder(
-    string TargetTypeName,
-    bool IsRefLikeType,
-    QuantityDef QuantityDef,
-    IList<UnitSymbolDef> UnitSymbols,
-    IList<UnitOperationDef> UnitOperations
-    )
+
+internal abstract class QuantityImplementBuilderBase(
+    string typeNameBase,
+    string tValue,
+    bool isRefLikeType,
+    QuantityDef quantityDef,
+    IList<UnitSymbolDef> unitSymbols,
+    IList<UnitOperationDef> unitOperations)
 {
+    protected static readonly SourceStringHandler Empty = new(0, 0);
+
+    public static (QuantityImplementBuilderBase NonGeneric, QuantityImplementBuilderBase Generic) Create(
+        string typeNameBase,
+        bool isRefLikeType,
+        QuantityDef quantityDef,
+        IList<UnitSymbolDef> unitSymbols,
+        IList<UnitOperationDef> unitOperations)
+    {
+        var nonGeneric = new NonGenericQuantityImplementBuilder(
+            typeNameBase,
+            isRefLikeType,
+            quantityDef,
+            unitSymbols,
+            unitOperations);
+        var generic = new GenericQuantityImplementBuilder(
+            typeNameBase,
+            isRefLikeType,
+            quantityDef,
+            unitSymbols,
+            unitOperations);
+        return (nonGeneric, generic);
+    }
+
+    public string TypeNameBase => typeNameBase;
+    public string TValue => tValue;
+    public bool IsRefLikeType => isRefLikeType;
+    public QuantityDef QuantityDef => quantityDef;
+    public IList<UnitSymbolDef> UnitSymbols => unitSymbols;
+    public IList<UnitOperationDef> UnitOperations => unitOperations;
+
     public UnitSymbolDef PrimaryUnit => _primaryUnit ??= GetPrimaryUnit();
     private UnitSymbolDef? _primaryUnit;
     private UnitSymbolDef GetPrimaryUnit() => UnitSymbols.FirstOrDefault() ?? new UnitSymbolDef("RawValue", "", 1, false);
 
+    public abstract string TypeName { get; }
+    public abstract string DocTypeName { get; }
 
-    public void Generate(StringBuilder sb, CancellationToken canceller)
-        => Generate(new StringBuilderWrapper(sb, canceller));
+    public abstract string UnitScaleFormat { get; }
+    public abstract string OneValue { get; }
 
+    public void Generate(SourceBuilderSlim sb)
+    {
+        GenerateTypeInit(sb);
+        sb.AppendLine("""
+        {
+        """);
+        GenerateMetadata(sb);
+        GenerateBasicTypeShape(sb);
+        GenerateUnitDefinitionsShape(sb);
+        sb.AppendLine();
+        GenerateSelfOperatorsShape(sb);
+        sb.AppendLine("""
+        }
+        
+        #region unit operations
 
-    private void Generate(StringBuilderWrapper sb)
+        """);
+        GenerateExternalOperatorPre(sb);
+        foreach (var op in UnitOperations)
+        {
+            GenerateExternalOperator(sb, op);
+        }
+        sb.AppendLine("""
+
+        #endregion unit operations
+
+        """);
+        GenerateUnitShorthand(sb);
+    }
+
+    protected abstract void GenerateTypeInit(SourceBuilderSlim sb);
+
+    protected abstract void GenerateMetadata(SourceBuilderSlim sb);
+
+    private void GenerateBasicTypeShape(SourceBuilderSlim sb)
     {
         sb.AppendLine($$"""
-#nullable enable
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
+            /// <summary> Gets the raw value of <see href="{{DocTypeName}}" />. </summary>
+            public {{TValue}} RawValue => _rawValue;
+            private readonly {{TValue}} _rawValue;
+        
+            internal {{TypeNameBase}}({{TValue}} rawValue)
+                => _rawValue = rawValue;
 
-namespace QuantitiesDotNet
-{
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(double))]
-    public partial struct {{TargetTypeName}}
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-        : IQuantity<{{TargetTypeName}}, double>
-    #if NET7_0_OR_GREATER
-        , IMultiplyOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
-        , IDivisionOperators<{{TargetTypeName}}, double, {{TargetTypeName}}>
-        , IDivisionOperators<{{TargetTypeName}}, {{TargetTypeName}}, double>
-    #endif
-"""); }
-        sb.AppendLine($$"""
-    {
-        /// <summary>
-        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
-        /// </summary>
-        public static QuantityMetadata Metadata => _Metadata;
+        """);
 
-        // for reflection of ref struct, explicitly named backing field is provided.
-        internal static readonly QuantityMetadata _Metadata = new(
-            "{{TargetTypeName.Substring(1)}}",
-            L : {{QuantityDef.L}},
-            M : {{QuantityDef.M}},
-            T : {{QuantityDef.T}},
-            I : {{QuantityDef.I}},
-            Th: {{QuantityDef.Th}},
-            N : {{QuantityDef.N}},
-            J : {{QuantityDef.J}});
-
-        /// <summary>
-        /// Gets quantity metadata instance for <see cref="{{TargetTypeName}}" />.
-        /// </summary>
-        public QuantityMetadata MetadataInstance => Metadata;
-
-        private readonly double _RawValue;
-
-        /// <summary>
-        /// The raw value of <see href="{{TargetTypeName}}" />.
-        /// </summary>
-        public double RawValue => _RawValue;
-
-        internal {{TargetTypeName}}(double rawValue)
-            => _RawValue = rawValue;
-
-"""); GenerateBasicTypeShape(sb, isGeneric: false); sb.AppendLine($$"""
-
-"""); GenerateUnitDefinitionsShape(sb, isGeneric: false); sb.AppendLine($$"""
-
-"""); GenerateSelfOperatorsShape(sb, isGeneric: false); sb.AppendLine($$"""
-    }
-
-
-    #region unit operations
-"""); foreach (var op in UnitOperations) { sb.AppendLine($$"""
-
-    partial struct {{op.ProductType}}
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-    #if NET7_0_OR_GREATER
-        : IDivisionOperators<{{op.ProductType}}, {{op.MultiplicantType}}, {{op.MultiplierType}}>
-    #endif
-"""); } sb.AppendLine($$"""
-    {
-        /// <inheritdoc />
-        public static {{op.MultiplierType}} operator /({{op.ProductType}} x, {{op.MultiplicantType}} y) => new(x.RawValue / y.RawValue);
-    }
-
-    partial struct {{op.MultiplicantType}}
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-    #if NET7_0_OR_GREATER
-        : IMultiplyOperators<{{op.MultiplicantType}}, {{op.MultiplierType}}, {{op.ProductType}}>
-    #endif
-"""); } sb.AppendLine($$"""
-    {
-        /// <inheritdoc />
-        public static {{op.ProductType}} operator *({{op.MultiplicantType}} x, {{op.MultiplierType}} y) => new(x.RawValue * y.RawValue);
-    }
-
-"""); if (op.MultiplierType != op.MultiplicantType) { sb.AppendLine($$"""
-    partial struct {{op.ProductType}}
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-    #if NET7_0_OR_GREATER
-        : IDivisionOperators<{{op.ProductType}}, {{op.MultiplierType}}, {{op.MultiplicantType}}>
-    #endif
-"""); } sb.AppendLine($$"""
-    {
-        /// <inheritdoc />
-        public static {{op.MultiplicantType}} operator /({{op.ProductType}} x, {{op.MultiplierType}} y) => new(x.RawValue / y.RawValue);
-    }
-
-    partial struct {{op.MultiplierType}}
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-    #if NET7_0_OR_GREATER
-        : IMultiplyOperators<{{op.MultiplierType}}, {{op.MultiplicantType}}, {{op.ProductType}}>
-    #endif
-"""); } sb.AppendLine($$"""
-    {
-        /// <inheritdoc />
-        public static {{op.ProductType}} operator *({{op.MultiplierType}} x, {{op.MultiplicantType}} y) => new(x.RawValue * y.RawValue);
-    }
-"""); } }
-        sb.AppendLine($$"""
-    #endregion
-
-    partial class UnitShorthands
-    {
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-
-"""); if (unit.ExportsShorthandSymbol) { sb.AppendLine($$"""
-            /// <summary> A symbol for <see cref="{{TargetTypeName}}" />. </summary>
-            [CLSCompliant(false)]
-            public static readonly {{TargetTypeName}} {{unit.ShortName}} = new({{unit.Scale}});
-
-"""); } }
-        sb.AppendLine($$"""
-    }
-}
-
-
-#if NET7_0_OR_GREATER
-namespace QuantitiesDotNet.Generic
-{
-    public partial struct {{TargetTypeName}}<T>
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
-        : IQuantity<{{TargetTypeName}}<T>, T>
-        , IMultiplyOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
-        , IDivisionOperators<{{TargetTypeName}}<T>, {{TargetTypeName}}<T>, T>
-        , IDivisionOperators<{{TargetTypeName}}<T>, T, {{TargetTypeName}}<T>>
-"""); }
-        sb.AppendLine($$"""
-        where T : INumber<T>
-    {
-        public static QuantityMetadata Metadata => {{TargetTypeName}}.Metadata;
-        public QuantityMetadata MetadataInstance => {{TargetTypeName}}.Metadata;
-
-        private readonly T _RawValue;
-
-        /// <summary>
-        /// The raw value of <see href="{{TargetTypeName}}{T}" />.
-        /// </summary>
-        public T RawValue => _RawValue;
-
-        internal {{TargetTypeName}}(T rawValue)
-            => _RawValue = rawValue;
-
-"""); GenerateBasicTypeShape(sb, isGeneric: true); sb.AppendLine($$"""
-
-"""); GenerateUnitDefinitionsShape(sb, isGeneric: true); sb.AppendLine($$"""
-
-"""); GenerateSelfOperatorsShape(sb, isGeneric: true); sb.AppendLine($$"""
-    }
-
-
-    #region unit operations
-
-    /// NOTE: In specific case recursive generic interface causes JIT compile time increasing exponentially.
-    /// Therefore interface implementations are comment-outed until .Net runtime is improved.
-
-"""); foreach (var op in UnitOperations) { sb.AppendLine($$"""
-
-    partial struct {{op.ProductType}}<T>
-//        : IDivisionOperators<{{op.ProductType}}<T>, {{op.MultiplicantType}}<T>, {{op.MultiplierType}}<T>>
-    {
-        /// <inheritdoc />
-        public static {{op.MultiplierType}}<T> operator /({{op.ProductType}}<T> x, {{op.MultiplicantType}}<T> y) => new(x.RawValue / y.RawValue);
-    }
-
-    partial struct {{op.MultiplicantType}}<T>
-//        : IMultiplyOperators<{{op.MultiplicantType}}<T>, {{op.MultiplierType}}<T>, {{op.ProductType}}<T>>
-    {
-        /// <inheritdoc />
-        public static {{op.ProductType}}<T> operator *({{op.MultiplicantType}}<T> x, {{op.MultiplierType}}<T> y) => new(x.RawValue * y.RawValue);
-    }
-
-"""); if (op.MultiplierType != op.MultiplicantType) { sb.AppendLine($$"""
-    partial struct {{op.ProductType}}<T>
-//        : IDivisionOperators<{{op.ProductType}}<T>, {{op.MultiplierType}}<T>, {{op.MultiplicantType}}<T>>
-    {
-        /// <inheritdoc />
-        public static {{op.MultiplicantType}}<T> operator /({{op.ProductType}}<T> x, {{op.MultiplierType}}<T> y) => new(x.RawValue / y.RawValue);
-    }
-
-    partial struct {{op.MultiplierType}}<T>
-//        : IMultiplyOperators<{{op.MultiplierType}}<T>, {{op.MultiplicantType}}<T>, {{op.ProductType}}<T>>
-    {
-        /// <inheritdoc />
-        public static {{op.ProductType}}<T> operator *({{op.MultiplierType}}<T> x, {{op.MultiplicantType}}<T> y) => new(x.RawValue * y.RawValue);
-    }
-"""); } }
-        sb.AppendLine($$"""
-    #endregion
-
-    partial class UnitShorthands
-    {
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-
-"""); if (unit.ExportsShorthandSymbol) { sb.AppendLine($$"""
-            /// <summary> A symbol for <see cref="{{TargetTypeName}}" />. </summary>
-            [CLSCompliant(false)]
-            public static readonly {{TargetTypeName}} {{unit.ShortName}} = new({{unit.Scale}});
-
-"""); } }
-        sb.AppendLine($$"""
-    }
-}
-#endif
-""");
-    }
-
-
-    private void GenerateBasicTypeShape(StringBuilderWrapper sb, bool isGeneric)
-    {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
-        var entityTypeName = isGeneric ? "T" : "double";
         if (IsRefLikeType)
         {
             return;
         }
         sb.AppendLine($$"""
-        #region basic type implements
+            #region basic type implements
 
-        /// <inheritdoc />
-        public int CompareTo(object? obj)
-            => obj is {{targetTypeName}} other
-            ? Compare(this, other)
-            : throw new ArgumentException(nameof(obj));
+            /// <inheritdoc />
+            public int CompareTo({{TypeName}} other) => Compare(this, other);
 
-        /// <inheritdoc />
-        public int CompareTo({{targetTypeName}} other) => Compare(this, other);
+            /// <inheritdoc />
+            public bool Equals({{TypeName}} other) => Equals(this, other);
 
-        /// <inheritdoc />
-        public bool Equals({{targetTypeName}} other) => Equals(this, other);
-
-        /// <summary>
-        /// Tries to parse a string into a value.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="provider"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public static bool TryParse(string? s, IFormatProvider? provider, out {{targetTypeName}} result)
-        {
-            if(!QuantityParseInfo.TryCompile(s, out var info))
+            /// <summary>
+            /// Tries to parse a string into a value.
+            /// </summary>
+            /// <param name="s"></param>
+            /// <param name="provider"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public static bool TryParse(string? s, IFormatProvider? provider, out {{TypeName}} result)
             {
                 result = default;
-                return false;
+                if(!QuantityParseInfo.TryCompile(s, out var info))
+                {
+                    return false;
+                }
+                if(!Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    return false;
+                }
+                if(!{{TValue}}.TryParse(info.Number, NumberStyles.Any, provider, out var x))
+                {
+                    return false;
+                }
+                result = new(x * unitMeta.Scale);
+                return true;
             }
-            var (succeeded, value) = info.UnitSelector switch {
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-                "{{unit.ShortName}}" => ({{entityTypeName}}.TryParse(info.Number, NumberStyles.Any, provider, out var x), From{{unit.MajorName}}(x!)),
-"""); }
-        sb.AppendLine($$"""
-                _ => (false, default({{targetTypeName}})),
-            };
-            result = value;
-            return succeeded;
-        }
 
-        /// <summary>
-        /// Parses a string into a value.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="provider"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="FormatException"></exception>
-        public static {{targetTypeName}} Parse(string? s, IFormatProvider? provider)
-        {
-            if(s is null)
-                throw new ArgumentNullException(nameof(s));
-            if(!TryParse(s, provider, out var result))
-                throw new FormatException();
-            return result;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-            => ToString(null, CultureInfo.CurrentCulture);
-
-        /// <summary>
-        /// Formats the value of the current instance using the specified format.
-        /// </summary>
-        /// <param name="format">
-        /// The format to use. -or- A null reference (Nothing in Visual Basic) to use the
-        /// default format defined for the type of the System.IFormattable implementation.
-        /// </param>
-        /// <returns>
-        /// The value of the current instance in the specified format.
-        /// </returns>
-        public string ToString(string? format)
-            => ToString(format, CultureInfo.CurrentCulture);
-
-        private (QuantityFormatInfo info, string number, string unit) GetFormatInfo(string? format, IFormatProvider? formatProvider)
-        {
-            if(!QuantityFormatInfo.TryCompile(format, out var info))
+            /// <summary>
+            /// Parses a string into a value.
+            /// </summary>
+            /// <param name="s"></param>
+            /// <param name="provider"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException"></exception>
+            /// <exception cref="FormatException"></exception>
+            public static {{TypeName}} Parse(string? s, IFormatProvider? provider)
             {
-                throw new FormatException();
+                if(s is null)
+                    throw new ArgumentNullException(nameof(s));
+                if(!TryParse(s, provider, out var result))
+                    throw new FormatException();
+                return result;
             }
 
-            var (value, unit) = info.UnitSelector switch {
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-                "{{unit.ShortName}}" => ({{unit.MajorName}}, "{{unit.ShortName}}"),
-"""); }
-        sb.AppendLine($$"""
-                "" => ({{PrimaryUnit.MajorName}}, "{{PrimaryUnit.ShortName}}"),
-                _ => throw new FormatException(),
-            };
-            var number = string.Format(formatProvider, "{0:" + info.NumberFormat + "}", value);
-            return (info, number, unit);
-        }
+            /// <inheritdoc />
+            public override string ToString()
+                => ToString(null, CultureInfo.CurrentCulture);
 
-        /// <inheritdoc />
-        public string ToString(string? format, IFormatProvider? formatProvider)
-        {
-            var (info, number, unit) = GetFormatInfo(format, formatProvider);
-            return info.Format(number, unit);
-        }
+            /// <summary>
+            /// Formats the value of the current instance using the specified format.
+            /// </summary>
+            /// <param name="format">
+            /// The format to use. -or- A null reference (Nothing in Visual Basic) to use the
+            /// default format defined for the type of the System.IFormattable implementation.
+            /// </param>
+            /// <returns>
+            /// The value of the current instance in the specified format.
+            /// </returns>
+            public string ToString(string? format)
+                => ToString(format, CultureInfo.CurrentCulture);
 
-        #if NET6_0_OR_GREATER
-        /// <inheritdoc />
-        #else
-        /// <summary>
-        /// Tries to format the value of the current instance into the provided span of characters.
-        /// </summary>
-        /// <param name="destination">The span in which to write this instance's value formatted as a span of characters.</param>
-        /// <param name="charsWritten">When this method returns, contains the number of characters that were written in <paramref name="destination"/>.</param>
-        /// <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="destination"/>.</param>
-        /// <param name="formatProvider">An optional object that supplies culture-specific formatting information for <paramref name="destination"/>.</param>
-        /// <returns><c>true</c> if the formatting was successful; otherwise, <c>false</c>.</returns>
-        #endif
-        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? formatProvider)
-        {
-            var (info, number, unit) = GetFormatInfo(format.ToString(), formatProvider);
-            return info.TryFormat(destination, out charsWritten, number, unit);
-        }
+            private (QuantityFormatInfo info, string number, string unit) GetFormatInfo(string? format, IFormatProvider? formatProvider)
+            {
+                if(!QuantityFormatInfo.TryCompile(format, out var info))
+                {
+                    throw new FormatException();
+                }
+                {{TValue}} number;
+                string unit;
+                if(Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    number = _rawValue / unitMeta.Scale;
+                    unit = unitMeta.UnitSymbol;
+                }
+                else
+                {
+                    number = {{PrimaryUnit.MajorName}};
+                    unit = "{{PrimaryUnit.ShortName}}";
+                }
+                var numberText = string.Format(formatProvider, "{0:" + info.NumberFormat + "}", number);
+                return (info, numberText, unit);
+            }
 
-        /// <inheritdoc />
-        public override int GetHashCode()
-            => _RawValue.GetHashCode();
+            /// <inheritdoc />
+            public string ToString(string? format, IFormatProvider? formatProvider)
+            {
+                var (info, number, unit) = GetFormatInfo(format, formatProvider);
+                return info.Format(number, unit);
+            }
 
-        /// <inheritdoc />
-        public override bool Equals([NotNullWhen(true)] object? obj)
-            => obj is {{targetTypeName}} other && Equals(this, other);
+            /// <summary>
+            /// Tries to format the value of the current instance into the provided span of characters.
+            /// </summary>
+            /// <param name="destination">The span in which to write this instance's value formatted as a span of characters.</param>
+            /// <param name="charsWritten">When this method returns, contains the number of characters that were written in <paramref name="destination"/>.</param>
+            /// <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="destination"/>.</param>
+            /// <param name="formatProvider">An optional object that supplies culture-specific formatting information for <paramref name="destination"/>.</param>
+            /// <returns><c>true</c> if the formatting was successful; otherwise, <c>false</c>.</returns>
+            public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? formatProvider)
+            {
+                var (info, number, unit) = GetFormatInfo(format.ToString(), formatProvider);
+                return info.TryFormat(destination, out charsWritten, number, unit);
+            }
 
-        #endregion  // basic type implements
-""");
+            /// <inheritdoc />
+            public override int GetHashCode()
+                => _rawValue.GetHashCode();
+
+            /// <inheritdoc />
+            public override bool Equals([NotNullWhen(true)] object? obj)
+                => obj is {{TypeName}} other && Equals(this, other);
+
+            #endregion basic type implements
+
+        """);
     }
 
-
-    private void GenerateUnitDefinitionsShape(StringBuilderWrapper sb, bool isGeneric)
+    private void GenerateUnitDefinitionsShape(SourceBuilderSlim sb)
     {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
-        var entityTypeName = isGeneric ? "T" : "double";
-        var unitInfoTypeName = isGeneric ? "UnitMetadata<T>" : "UnitMetadata<double>";
-        var getUnitScaleFormat = isGeneric ? "T.CreateSaturating({0})" : "{0}";
+        var unitInfo = $"UnitMetadata<{TValue}>";
         sb.AppendLine($$"""
-        #region unit definition implements
+            #region unit definition implements
 
-        /// <summary> The unit informations dictionary which is keyed by unit symbols. </summary>
-        public static readonly ImmutableDictionary<string, {{unitInfoTypeName}}> UnitsBySymbol = GetUnitsBySymbol();
-        private static ImmutableDictionary<string, {{unitInfoTypeName}}> GetUnitsBySymbol()
+            private readonly static Lazy<ImmutableDictionary<string, {{unitInfo}}>> _units
+                = new(GetUnitsBySymbol, LazyThreadSafetyMode.PublicationOnly);
+
+            /// <summary> Gets the unit informations dictionary which is keyed by unit symbols. </summary>
+            public static ImmutableDictionary<string, {{unitInfo}}> Units => _units.Value;
+
+            /// <summary> Gets the unit informations dictionary which is keyed by unit symbols. </summary>
+            public ImmutableDictionary<string, {{unitInfo}}> UnitsInstance => _units.Value;
+
+            private static ImmutableDictionary<string, {{unitInfo}}> GetUnitsBySymbol()
+            {
+                var builder = ImmutableDictionary.CreateBuilder<string, {{unitInfo}}>();
+                {{UnitSymbols
+                        .Select(unit => $"builder.Add(\"{unit.ShortName}\", {unit.MajorName}Info);")
+                        .PreserveIndent()}}
+                return builder.ToImmutable();
+            }
+
+        """);
+        foreach (var unit in UnitSymbols)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, {{unitInfoTypeName}}>();
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-            builder.Add("{{unit.ShortName}}", {{unit.MajorName}}Info);
-"""); }
-        sb.AppendLine($$"""
-            return builder.ToImmutable();
+            sb.AppendLine($$"""
+            #region {{unit.MajorName}}
+
+            private static readonly {{TValue}} _{{unit.MajorName}}Scale = {{string.Format(UnitScaleFormat, unit.Scale)}};
+
+            /// <summary> The information for [{{unit.ShortName}}]. </summary>
+            public static readonly {{unitInfo}} {{unit.MajorName}}Info = new (_{{unit.MajorName}}Scale, "{{unit.MajorName}}", "{{unit.ShortName}}");
+
+            /// <summary>
+            /// Creates a new <see href="{{DocTypeName}}" /> instance by interpreting the given real value in the scale of [{{unit.ShortName}}].
+            /// </summary>
+            /// <param name="Second"></param>
+            /// <returns></returns>
+            public static {{TypeName}} From{{unit.MajorName}}({{TValue}} {{unit.MajorName}})
+                => new ({{unit.MajorName}} * _{{unit.MajorName}}Scale);
+
+            /// <summary> Gets the value of this instance in [{{unit.ShortName}}] scale. </summary>
+            public {{TValue}} {{unit.MajorName}} => _rawValue / _{{unit.MajorName}}Scale;
+
+            #endregion {{unit.MajorName}}
+
+        """);
         }
-
-"""); foreach (var unit in UnitSymbols) { sb.AppendLine($$"""
-        #region {{unit.MajorName}}
-
-        private static readonly {{entityTypeName}} _{{unit.MajorName}}Scale = {{string.Format(getUnitScaleFormat, unit.Scale)}};
-
-        /// <summary> The information for [{{unit.ShortName}}]. </summary>
-        public static readonly {{unitInfoTypeName}} {{unit.MajorName}}Info = new (_{{unit.MajorName}}Scale, "{{unit.MajorName}}", "{{unit.ShortName}}");
-
-        /// <summary>
-        /// Creates a new <see href="{{targetTypeName.Replace('<', '{').Replace('>', '}')}}" /> instance by interpreting the given real value in the scale of [{{unit.ShortName}}].
-        /// </summary>
-        /// <param name="Second"></param>
-        /// <returns></returns>
-        public static {{targetTypeName}} From{{unit.MajorName}}({{entityTypeName}} {{unit.MajorName}})
-            => new ({{unit.MajorName}} * _{{unit.MajorName}}Scale);
-
-        /// <summary>
-        /// Gets the value of this instance in [{{unit.ShortName}}] scale.
-        /// </summary>
-        public {{entityTypeName}} {{unit.MajorName}} => _RawValue / _{{unit.MajorName}}Scale;
-
-        #endregion
-
-"""); }
         sb.AppendLine($$"""
-        #endregion  // unit definition implements
-""");
+            #endregion unit definition implements
+        """);
     }
 
-
-    private void GenerateSelfOperatorsShape(StringBuilderWrapper sb, bool isGeneric)
+    private void GenerateSelfOperatorsShape(SourceBuilderSlim sb)
     {
-        var targetTypeName = TargetTypeName + (isGeneric ? "<T>" : "");
-        var entityTypeName = isGeneric ? "T" : "double";
-        var one = isGeneric ? "T.One" : "1.0";
         sb.AppendLine($$"""
-        #region operator implements
+            #region arithmetic operator implements
 
-"""); if (!IsRefLikeType) { sb.AppendLine($$"""
+            /** <inheritdoc /> */ public static {{TypeName}} AdditiveIdentity       => default;
+            /** <inheritdoc /> */ public static {{TValue}} MultiplicativeIdentity => {{OneValue}};
+            /** <inheritdoc /> */ public static {{TypeName}} operator +({{TypeName}} value) => value;
+            /** <inheritdoc /> */ public static {{TypeName}} operator -({{TypeName}} value) => new(-value._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator +({{TypeName}} x, {{TypeName}} y) => new (x._rawValue + y._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator -({{TypeName}} x, {{TypeName}} y) => new (x._rawValue - y._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator %({{TypeName}} x, {{TypeName}} y) => new(x._rawValue % y._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TValue}} x, {{TypeName}} y) => new (x * y._rawValue);
+            /** <inheritdoc /> */ public static {{TypeName}} operator *({{TypeName}} x, {{TValue}} y) => new (x._rawValue * y);
+            /** <inheritdoc /> */ public static {{TValue}} operator /({{TypeName}} x, {{TypeName}} y) => x._rawValue / y._rawValue;
+            /** <inheritdoc /> */ public static {{TypeName}} operator /({{TypeName}} x, {{TValue}} y) => new(x._rawValue / y);
 
-        /// <summary>
-        /// Determines whether the 2 values are same or not.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public static bool Equals(in {{targetTypeName}} x, in {{targetTypeName}} y) => x._RawValue == y._RawValue;
+            #endregion arithmetic operator implements
 
-        /// <summary>
-        /// Determines which value is greater than another.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public static int Compare(in {{targetTypeName}} x, in {{targetTypeName}} y)
+        """);
+        if(IsRefLikeType)
         {
-            if (x._RawValue == y._RawValue) { return 0; }
-            return x._RawValue < y._RawValue ? -1 : 1;
+            return;
         }
-
-        /// <inheritdoc />
-        public static bool operator ==({{targetTypeName}} x, {{targetTypeName}} y) => Equals(x, y);
-
-        /// <inheritdoc />
-        public static bool operator !=({{targetTypeName}} x, {{targetTypeName}} y) => !Equals(x, y);
-
-        /// <inheritdoc />
-        public static bool operator <({{targetTypeName}} x, {{targetTypeName}} y) => Compare(x, y) < 0;
-
-        /// <inheritdoc />
-        public static bool operator >({{targetTypeName}} x, {{targetTypeName}} y) => Compare(x, y) > 0;
-
-        /// <inheritdoc />
-        public static bool operator <=({{targetTypeName}} x, {{targetTypeName}} y) => Compare(x, y) <= 0;
-
-        /// <inheritdoc />
-        public static bool operator >=({{targetTypeName}} x, {{targetTypeName}} y) => Compare(x, y) >= 0;
-
-"""); }
         sb.AppendLine($$"""
+            #region comparison operator implements
 
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator +({{targetTypeName}} x, {{targetTypeName}} y) => new (x._RawValue + y._RawValue);
+            /// <summary> Determines whether the 2 values are same or not. </summary>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <returns></returns>
+            public static bool Equals({{TypeName}} x, {{TypeName}} y)
+                => x._rawValue == y._rawValue;
 
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator-({{targetTypeName}} x, {{targetTypeName}} y) => new (x._RawValue - y._RawValue);
+            /// <summary> Determines which value is greater than another. </summary>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <returns></returns>
+            public static int Compare({{TypeName}} x, {{TypeName}} y)
+            {
+                if (x._rawValue == y._rawValue) { return 0; }
+                return x._rawValue < y._rawValue ? -1 : 1;
+            }
 
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator *({{entityTypeName}} x, {{targetTypeName}} y) => new (x * y._RawValue);
+            /** <inheritdoc /> */ public static bool operator ==({{TypeName}} x, {{TypeName}} y) => Equals(x, y);
+            /** <inheritdoc /> */ public static bool operator !=({{TypeName}} x, {{TypeName}} y) => !Equals(x, y);
+            /** <inheritdoc /> */ public static bool operator < ({{TypeName}} x, {{TypeName}} y) => Compare(x, y) <  0;
+            /** <inheritdoc /> */ public static bool operator > ({{TypeName}} x, {{TypeName}} y) => Compare(x, y) >  0;
+            /** <inheritdoc /> */ public static bool operator <=({{TypeName}} x, {{TypeName}} y) => Compare(x, y) <= 0;
+            /** <inheritdoc /> */ public static bool operator >=({{TypeName}} x, {{TypeName}} y) => Compare(x, y) >= 0;
 
-        /// <inheritdoc />
-        public static {{entityTypeName}} operator /({{targetTypeName}} x, {{targetTypeName}} y) => x._RawValue / y._RawValue;
+            #endregion comparison operator implements
 
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator *({{targetTypeName}} x, {{entityTypeName}} y) => new (x._RawValue * y);
-
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator /({{targetTypeName}} x, {{entityTypeName}} y) => new(x._RawValue / y);
-
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator %({{targetTypeName}} x, {{targetTypeName}} y) => new(x._RawValue % y._RawValue);
-
-        /// <inheritdoc />
-        public static {{targetTypeName}} AdditiveIdentity => default;
-
-        /// <inheritdoc />
-        public static {{entityTypeName}} MultiplicativeIdentity => {{one}};
-
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator +({{targetTypeName}} value) => value;
-
-        /// <inheritdoc />
-        public static {{targetTypeName}} operator -({{targetTypeName}} value) => new(-value._RawValue);
-
-        #endregion  // operator implements
-""");
+        """);
     }
 
-
-    private class StringBuilderWrapper(StringBuilder sb, CancellationToken token)
+    protected virtual void GenerateExternalOperatorPre(SourceBuilderSlim sb)
     {
-        public void AppendLine(string text)
+    }
+
+    private void GenerateExternalOperator(SourceBuilderSlim sb, UnitOperationDef op)
+    {
+        var product = GetRelativeType(op.ProductType);
+        var multiplicant = GetRelativeType(op.MultiplicantType);
+        var multiplier = GetRelativeType(op.MultiplierType);
+        var (divisonOperator1If, multiplyOperator1If, divisionOperator2If, multiplyOperator2If)
+            = GetOperatorType(product, multiplicant, multiplier);
+
+        sb.AppendLine($$"""
+        partial struct {{product}}{{divisonOperator1If}}
         {
-            token.ThrowIfCancellationRequested();
-            sb.AppendLine(text);
+            /// <inheritdoc />
+            public static {{multiplier}} operator /({{product}} x, {{multiplicant}} y) => new(x.RawValue / y.RawValue);
         }
+
+        partial struct {{multiplicant}}{{multiplyOperator1If}}
+        {
+            /// <inheritdoc />
+            public static {{product}} operator *({{multiplicant}} x, {{multiplier}} y) => new(x.RawValue * y.RawValue);
+        }
+        
+        """);
+        if(multiplicant == multiplier)
+        {
+            return;
+        }
+        sb.AppendLine($$"""
+        partial struct {{product}}{{divisionOperator2If}}
+        {
+            /// <inheritdoc />
+            public static {{multiplicant}} operator /({{product}} x, {{multiplier}} y) => new(x.RawValue / y.RawValue);
+        }
+
+        partial struct {{multiplier}}{{multiplyOperator2If}}
+        {
+            /// <inheritdoc />
+            public static {{product}} operator *({{multiplier}} x, {{multiplicant}} y) => new(x.RawValue * y.RawValue);
+        }
+
+        """);
+        }
+
+    private void GenerateUnitShorthand(SourceBuilderSlim sb)
+    {
+        var unitShorthands = GetRelativeType("UnitShorthands");
+        sb.AppendLine($$"""
+            partial class {{unitShorthands}}
+            {
+                {{
+                    UnitSymbols
+                        .Where(static x => x.ExportsShorthandSymbol)
+                        .Select(x => (SourceStringHandler)$$"""
+                        /// <summary> A symbol for <see cref="{{DocTypeName}}" />. </summary>
+                        [CLSCompliant(false)]
+                        public static readonly {{TypeName}} {{x.ShortName}} = new({{string.Format(UnitScaleFormat, x.Scale)}});
+                        
+                        """)
+                        .PreserveIndent()
+                }}
+            }
+
+            """);
+    }
+
+    protected abstract string GetRelativeType(string typeNameBase);
+
+    protected abstract(SourceStringHandler divisionOperato1If, SourceStringHandler multiplyOperator1If, SourceStringHandler divisionOperator2If, SourceStringHandler multiplyOperator2If) GetOperatorType(
+        string product,
+        string multiplicant,
+        string multiplier);
+}
+
+
+internal sealed class NonGenericQuantityImplementBuilder(
+    string typeNameBase,
+    bool isRefLikeType,
+    QuantityDef quantityDef,
+    IList<UnitSymbolDef> unitSymbols,
+    IList<UnitOperationDef> unitOperations)
+    : QuantityImplementBuilderBase(typeNameBase, "double", isRefLikeType, quantityDef, unitSymbols, unitOperations)
+{
+    public override string TypeName => TypeNameBase;
+    public override string DocTypeName => TypeNameBase;
+    public override string UnitScaleFormat => "{0}";
+    public override string OneValue => "1.0";
+
+    protected override void GenerateTypeInit(SourceBuilderSlim sb)
+    {
+        var quantityIf = !IsRefLikeType
+                        ? (SourceStringHandler)$$"""
+                
+                    : IQuantity<{{TypeName}}, {{TValue}}>
+                #if NET7_0_OR_GREATER
+                    , IMultiplyOperators<{{TypeName}}, {{TValue}}, {{TypeName}}>
+                    , IDivisionOperators<{{TypeName}}, {{TValue}}, {{TypeName}}>
+                    , IDivisionOperators<{{TypeName}}, {{TypeName}}, {{TValue}}>
+                #endif
+                """
+            : Empty;
+        sb.AppendLine($$"""
+        [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(double))]
+        public partial struct {{TypeName}}{{quantityIf}}
+        """);
+    }
+
+    protected override void GenerateMetadata(SourceBuilderSlim sb)
+    {
+        sb.AppendLine($$"""
+            // for reflection of ref struct, explicitly named backing field is provided.
+            internal static readonly QuantityMetadata _Metadata = new(
+                "{{TypeNameBase.Substring(1)}}",
+                L : {{QuantityDef.L}},
+                M : {{QuantityDef.M}},
+                T : {{QuantityDef.T}},
+                I : {{QuantityDef.I}},
+                Th: {{QuantityDef.Th}},
+                N : {{QuantityDef.N}},
+                J : {{QuantityDef.J}});
+    
+            /// <summary> Gets quantity metadata instance for <see cref="{{DocTypeName}}" />. </summary>
+            public static QuantityMetadata Metadata => _Metadata;
+
+            /// <summary> Gets quantity metadata instance for <see cref="{{DocTypeName}}" />. </summary>
+            public QuantityMetadata MetadataInstance => Metadata;
+
+        """);
+    }
+
+    protected override string GetRelativeType(string typeNameBase)
+        => typeNameBase;
+
+    protected override (SourceStringHandler divisionOperato1If, SourceStringHandler multiplyOperator1If, SourceStringHandler divisionOperator2If, SourceStringHandler multiplyOperator2If) GetOperatorType(string product, string multiplicant, string multiplier)
+    {
+        var divisonOperator1If = !IsRefLikeType
+            ? (SourceStringHandler)$$"""
+
+                #if NET7_0_OR_GREATER
+                    : IDivisionOperators<{{product}}, {{multiplicant}}, {{multiplier}}>
+                #endif
+                """
+            : Empty;
+        var multiplyOperator1If = !IsRefLikeType
+            ? (SourceStringHandler)$$"""
+
+                #if NET7_0_OR_GREATER
+                    : IMultiplyOperators<{{multiplicant}}, {{multiplier}}, {{product}}>
+                #endif
+                """
+            : Empty;
+        var divisionOperator2If = !IsRefLikeType
+            ? (SourceStringHandler)$$"""
+
+                #if NET7_0_OR_GREATER
+                    : IDivisionOperators<{{product}}, {{multiplier}}, {{multiplicant}}>
+                #endif
+                """
+            : Empty;
+        var multiplyOperator2If = !IsRefLikeType
+            ? (SourceStringHandler)$$"""
+
+                #if NET7_0_OR_GREATER
+                    : IMultiplyOperators<{{multiplier}}, {{multiplicant}}, {{product}}>
+                #endif
+                """
+            : Empty;
+        return (divisonOperator1If, multiplyOperator1If, divisionOperator2If, multiplyOperator2If);
     }
 }
+
+
+internal sealed class GenericQuantityImplementBuilder(
+    string typeNameBase,
+    bool isRefLikeType,
+    QuantityDef quantityDef,
+    IList<UnitSymbolDef> unitSymbols,
+    IList<UnitOperationDef> unitOperations)
+    : QuantityImplementBuilderBase(typeNameBase, "T", isRefLikeType, quantityDef, unitSymbols, unitOperations)
+{
+    public override string TypeName => $"{TypeNameBase}<{TValue}>";
+    public override string DocTypeName => TypeNameBase;
+    public override string UnitScaleFormat => "T.CreateSaturating({0})";
+    public override string OneValue => "T.One";
+
+    protected override void GenerateTypeInit(SourceBuilderSlim sb)
+    {
+        var quantityIf = !IsRefLikeType
+            ? (SourceStringHandler)$$"""
+                
+                    : IQuantity<{{TypeName}}, {{TValue}}>
+                    , IMultiplyOperators<{{TypeName}}, {{TValue}}, {{TypeName}}>
+                    , IDivisionOperators<{{TypeName}}, {{TValue}}, {{TypeName}}>
+                    , IDivisionOperators<{{TypeName}}, {{TypeName}}, {{TValue}}>
+                """
+            : Empty;
+        sb.AppendLine($$"""
+        public partial struct {{TypeName}}{{quantityIf}}
+            where T : INumber<T>
+        """);
+    }
+
+    protected override void GenerateMetadata(SourceBuilderSlim sb)
+    {
+        sb.AppendLine($$"""
+            /// <summary> Gets quantity metadata instance for <see cref="{{DocTypeName}}" />. </summary>
+            public static QuantityMetadata Metadata => {{TypeNameBase}}.Metadata;
+
+            /// <summary> Gets quantity metadata instance for <see cref="{{DocTypeName}}" />. </summary>
+            public QuantityMetadata MetadataInstance => {{TypeNameBase}}.Metadata;
+
+        """);
+    }
+
+    protected override string GetRelativeType(string typeNameBase)
+        => $"{typeNameBase}<{TValue}>";
+
+    protected override void GenerateExternalOperatorPre(SourceBuilderSlim sb)
+    {
+        sb.AppendLine($$"""
+            // NOTE: In specific case recursive generic interface causes JIT compile time increasing exponentially.
+            // Therefore interface implementations are comment-outed until .Net runtime is improved.
+
+            """);
+    }
+
+    protected override (SourceStringHandler divisionOperato1If, SourceStringHandler multiplyOperator1If, SourceStringHandler divisionOperator2If, SourceStringHandler multiplyOperator2If) GetOperatorType(string product, string multiplicant, string multiplier)
+    {
+        var divisonOperator1If = (SourceStringHandler)$$"""
+
+                //  : IDivisionOperators<{{product}}, {{multiplicant}}, {{multiplier}}>
+                """;
+        var multiplyOperator1If = (SourceStringHandler)$$"""
+
+                //  : IMultiplyOperators<{{multiplicant}}, {{multiplier}}, {{product}}>
+                """;
+        var divisionOperator2If = (SourceStringHandler)$$"""
+
+                //  : IDivisionOperators<{{product}}, {{multiplier}}, {{multiplicant}}>
+                """;
+        var multiplyOperator2If = (SourceStringHandler)$$"""
+
+                //  : IMultiplyOperators<{{multiplier}}, {{multiplicant}}, {{product}}>
+                """;
+        return (divisonOperator1If, multiplyOperator1If, divisionOperator2If, multiplyOperator2If);
+    }
+}
+

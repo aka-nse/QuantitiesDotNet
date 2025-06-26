@@ -1,0 +1,73 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+<#
+string[] typeTestCases = [
+    "QAcceleration",
+    "QAngle",
+    "QAngularAcceleration",
+    "QAngularVelocity",
+    "QArea",
+    "QCatalyticActivity",
+    "QDensity",
+    "QDimensionless",
+    "QElectricCapacity",
+    "QElectricCharge",
+    "QElectricConductance",
+    "QElectricConductivity",
+    "QElectricCurrent",
+    "QElectricFieldStrength",
+    "QElectricFluxDensity",
+    "QElectricIndactance",
+    "QElectricResistance",
+    "QElectricVoltage",
+    "QEnergy",
+    "QForce",
+    "QFrequency",
+    "QHeatCapacity",
+    "QLength",
+    "QLuminance",
+    "QLuminousFlux",
+    "QLuminousIntensity",
+    "QMagneticFieldStrength",
+    "QMagneticFlux",
+    "QMagneticFluxDensity",
+    "QMass",
+    "QMassFlowRate",
+    "QMomentum",
+    "QPower",
+    "QPressure",
+    "QSolidAngle",
+    "QSpatialFrequency",
+    "QSpecificHeatCapacity",
+    "QSpeed",
+    "QSubstanceAmount",
+    "QTemperature",
+    "QTime",
+    "QTorque",
+    "QVolume",
+];
+#>
+namespace QuantitiesDotNet;
+using Generic;
+
+
+public partial class QuantityTest
+{
+    public static partial TheoryData<object> TypeArgumentProvider_NonGeneric()
+        => [
+<#  foreach(var quantity in typeTestCases) { #>
+            new <#=quantity#>(1.0),
+<#  } #>
+        ];
+        
+    public static partial TheoryData<object> TypeArgumentProvider_Generic()
+        => [
+<#  foreach(var quantity in typeTestCases) { #>
+            new <#=quantity#><decimal>(1.0m),
+<#  } #>
+        ];
+}
