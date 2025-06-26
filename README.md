@@ -117,11 +117,9 @@ Console.WriteLine(speedGeneric.RawValue.GetType());
 ### re-interpret casting
 
 ```CSharp
-var rawValueNonGeneric = 1.234;
-Console.WriteLine(Unsafe.As<double, QuantitiesDotNet.QSpeed>(ref rawValueNonGeneric));  // 1.234m/s
+stdout.WriteLine(Unsafe.BitCast<double, QSpeed>(1.234));  // 1.234m/s
 
-var rawValueGeneric = 1.234m;
-Console.WriteLine(Unsafe.As<decimal, QuantitiesDotNet.Generic.QSpeed<decimal>>(ref rawValueGeneric));  // 1.234m/s
+stdout.WriteLine(Unsafe.BitCast<decimal, Generic.QSpeed<decimal>>(1.234m));  // 1.234m/s
 ```
 
 ## Coding Conventions

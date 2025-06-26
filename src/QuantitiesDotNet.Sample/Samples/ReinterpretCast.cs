@@ -8,12 +8,10 @@ internal class ReinterpretCast : IUsageSample
 
     public void Execute(TextWriter stdout)
     {
-        var rawValueNonGeneric = 1.234;
-        stdout.WriteLine(Unsafe.As<double, QSpeed>(ref rawValueNonGeneric));  // 1.234m/s
+        stdout.WriteLine(Unsafe.BitCast<double, QSpeed>(1.234));  // 1.234m/s
 
 #if NET7_0_OR_GREATER
-        var rawValueGeneric = 1.234m;
-        stdout.WriteLine(Unsafe.As<decimal, Generic.QSpeed<decimal>>(ref rawValueGeneric));  // 1.234m/s
+        stdout.WriteLine(Unsafe.BitCast<decimal, Generic.QSpeed<decimal>>(1.234m));  // 1.234m/s
 #endif
     }
 }
