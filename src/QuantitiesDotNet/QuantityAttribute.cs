@@ -1,4 +1,4 @@
-﻿namespace QuantitiesDotNet;
+namespace QuantitiesDotNet;
 
 
 [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
@@ -81,18 +81,12 @@ internal sealed class QuantityUnitAttribute : Attribute
 
 
 [AttributeUsage(AttributeTargets.Struct, AllowMultiple = true)]
-internal sealed class QuantityOperationAttribute : Attribute
+internal sealed class QuantityOperationAttribute(Type multiplicant, Type multiplier, Type product)
+    : Attribute
 {
-    public Type MultiplicantType { get; }
-    public Type MultiplierType { get; }
-    public Type ProductType { get; }
-
-    public QuantityOperationAttribute(Type multiplicant, Type multiplier, Type product)
-    {
-        MultiplicantType = multiplicant;
-        MultiplierType = multiplier;
-        ProductType = product;
-    }
+    public Type MultiplicantType { get; } = multiplicant;
+    public Type MultiplierType { get; } = multiplier;
+    public Type ProductType { get; } = product;
 }
 
 

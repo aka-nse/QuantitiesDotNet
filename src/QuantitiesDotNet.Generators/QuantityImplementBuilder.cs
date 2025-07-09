@@ -210,7 +210,7 @@ internal abstract class QuantityImplementBuilderBase(
             public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? formatProvider)
             {
                 var (info, number, unit) = GetFormatInfo(format.ToString(), formatProvider);
-                return info.TryFormat(destination, out charsWritten, number, unit);
+                return info.TryFormat(number, unit, destination, out charsWritten);
             }
 
             /// <inheritdoc />
