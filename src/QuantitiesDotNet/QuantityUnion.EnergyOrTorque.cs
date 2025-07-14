@@ -55,11 +55,11 @@ namespace QuantitiesDotNet
 
         /// <inheritdoc />
         public static QLength operator /(QEnergy x, QForce y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
 
         /// <inheritdoc />
         public static QForce operator /(QEnergy x, QLength y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
     }
 
     partial struct QTorque
@@ -78,11 +78,11 @@ namespace QuantitiesDotNet
 
         /// <inheritdoc />
         public static QLength operator /(QTorque x, QForce y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
 
         /// <inheritdoc />
         public static QForce operator /(QTorque x, QLength y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
     }
 }
 
@@ -147,11 +147,11 @@ namespace QuantitiesDotNet.Generic
 
         /// <inheritdoc />
         public static QLength<T> operator /(QEnergy<T> x, QForce<T> y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
 
         /// <inheritdoc />
         public static QForce<T> operator /(QEnergy<T> x, QLength<T> y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
     }
 
     readonly partial struct QTorque<T>
@@ -170,11 +170,11 @@ namespace QuantitiesDotNet.Generic
 
         /// <inheritdoc />
         public static QLength<T> operator /(QTorque<T> x, QForce<T> y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
 
         /// <inheritdoc />
         public static QForce<T> operator /(QTorque<T> x, QLength<T> y)
-            => new(x.RawValue * y.RawValue);
+            => new(x.RawValue / y.RawValue);
     }
 }
 #endif

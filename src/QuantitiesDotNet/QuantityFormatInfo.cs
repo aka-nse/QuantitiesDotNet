@@ -1,22 +1,9 @@
-
-/* プロジェクト 'QuantitiesDotNet(netstandard2.1)' からのマージされていない変更
-前:
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Text.RegularExpressions;
-後:
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
-*/
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace QuantitiesDotNet;
 
-internal partial record QuantityFormatInfo(
+public partial record QuantityFormatInfo(
     string NumberFormat,
     string Spacing,
     string UnitSelector,
@@ -83,7 +70,7 @@ internal partial record QuantityFormatInfo(
         return buffer.ToString();
     }
 
-    public bool TryFormat(Span<char> destination, out int charsWritten, string number, string unit)
+    public bool TryFormat(string number, string unit, Span<char> destination, out int charsWritten)
     {
         var length = number.Length + Spacing.Length + (HasBrackets ? 2 : 0) + unit.Length;
         if (destination.Length < length)

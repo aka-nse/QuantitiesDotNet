@@ -3,12 +3,22 @@ using System.Text.RegularExpressions;
 
 namespace QuantitiesDotNet;
 
-internal partial record QuantityParseInfo(
+public partial record QuantityParseInfo(
     string Number,
     string UnitSelector)
 {
     // lang=regex
-    private const string _FormatMatcherPattern = @"(?<number>[\+\-]?\d*(?:[\.\,]\d*)?(?:[Ee][\+\-]\d+)?) *(?:(?:\[(?<unit>[\w/^*() ]+)\])|(?<unit>[\w/^*() ]+))";
+    private const string _NumberPattern = @"(?<number>[\+\-]?\d+(?:[\.\,]\d*)?(?:[Ee][\+\-]\d+)?)";
+
+    // lang=regex
+    private const string _BracketedUnitPattern = @"\[(?<unit>[\w/^*()\s\+\-]+)\]";
+
+    // lang=regex
+    private const string _BareUnitPattern = @"(?<unit>[\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}_(][\w/^*()\s\+\-]*)";
+
+    // lang=regex
+    private const string _FormatMatcherPattern = @$"^{_NumberPattern}\s*(?:{_BracketedUnitPattern}|{_BareUnitPattern})$";
+
     private static readonly Regex _FormatMatcher
 #if NET7_0_OR_GREATER
         = GenerateFormatMatcher();
@@ -22,7 +32,7 @@ internal partial record QuantityParseInfo(
         string? expression,
         [NotNullWhen(true)] out QuantityParseInfo? info)
     {
-        expression ??= "";
+        expression = expression is { } ? expression.Trim() : "";
         var match = _FormatMatcher.Match(expression);
         if (!match.Success)
         {
