@@ -1,14 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
+    <PropertyGroup Label="platform and framework environment">
         <LangVersion>13.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
-        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup Label="package metadata">
         <PackageId>akanse.$(AssemblyName)</PackageId>
         <Title>QuantitiesDotNet</Title>
+        <Version>0.2.0</Version>
+        <Authors>aka-nse</Authors>
+        <Company></Company>
         <Description>.Net library for physical quantity handling</Description>
-        <AssemblyVersion>0.2.0.0</AssemblyVersion>
-        <FileVersion>$(AssemblyVersion)</FileVersion>
+        <PackageTags>quantities,physics,measurements</PackageTags>
+        <PackageProjectUrl>https://github.com/aka-nse/QuantitiesDotNet</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/aka-nse/QuantitiesDotNet</RepositoryUrl>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
