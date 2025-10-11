@@ -1,3 +1,4 @@
-#if NET7_0_OR_GREATER
+#pragma warning disable IDE0005
+global using System;
 global using System.Numerics;
-#endif
+global using System.Text;

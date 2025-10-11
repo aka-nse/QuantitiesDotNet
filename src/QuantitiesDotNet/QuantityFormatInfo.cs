@@ -10,14 +10,14 @@ public partial record QuantityFormatInfo(
     bool HasBrackets)
 {
     // lang=regex
-    private const string _EscapeMatcherPattern = @"\\(.)";
-    private static readonly Regex _EscapeMatcher
+    private const string _escapeMatcherPattern = @"\\(.)";
+    private static readonly Regex _escapeMatcher
 #if NET7_0_OR_GREATER
         = GenerateEscapeMatcher();
-    [GeneratedRegex(_EscapeMatcherPattern)]
+    [GeneratedRegex(_escapeMatcherPattern)]
     private static partial Regex GenerateEscapeMatcher();
 #else
-        = new(_EscapeMatcherPattern, RegexOptions.Compiled);
+        = new(_escapeMatcherPattern, RegexOptions.Compiled);
 #endif
 
     // lang=regex
@@ -56,9 +56,9 @@ public partial record QuantityFormatInfo(
             return false;
         }
         info = new(
-            _EscapeMatcher.Replace(match.Groups["number"].Value, "$1"),
+            _escapeMatcher.Replace(match.Groups["number"].Value, "$1"),
             match.Groups["spacing"].Value,
-            _EscapeMatcher.Replace(match.Groups["unit"].Value, "$1"),
+            _escapeMatcher.Replace(match.Groups["unit"].Value, "$1"),
             hasBrackets);
         return true;
     }
