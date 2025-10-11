@@ -1,8 +1,9 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace QuantitiesDotNet.Generators;
 
-public record UnitSymbolDef(
+public record UnitSymbol(
     string MajorName,
     string ShortName,
     double Scale,
@@ -49,24 +50,29 @@ public record UnitSymbolDef(
         };
 #pragma warning restore format
 
-    public static IEnumerable<UnitSymbolDef> GetUnitSymbols(AttributeData attr)
+    public static ImmutableArray<UnitSymbol> GetUnitSymbols(IEnumerable<AttributeData> attrs)
     {
-        var majorName = GetMajorName(attr);
-        var shortName = GetShortName(attr);
-        var scale = GetScale(attr);
-        var exportsSymbol = GetExportsShorthandSymbol(attr);
-        yield return new(majorName, shortName, scale, exportsSymbol);
-
-        var prefix = attr.ConstructorArguments[QuantityUnitAttributeFields.Prefix].Value is int flag ? flag : 0;
-        var powerOfPrefix = attr.ConstructorArguments[QuantityUnitAttributeFields.PowerOfPrefix].Value is int pop ? pop : 1;
-        var prefixSet = _UnitPrefix.Where(tpl => (tpl.flag & prefix) != 0);
-        var camelMajorName = char.ToLower(majorName[0]) + majorName.Substring(1);
-        foreach (var (_, name, symbol, pScale) in prefixSet)
+        static IEnumerable<UnitSymbol> core(AttributeData attr)
         {
-            var exMajorName = name + camelMajorName;
-            var exShortName = symbol + shortName;
-            yield return new(exMajorName, exShortName, scale * Math.Pow(pScale, powerOfPrefix), exportsSymbol);
+            var majorName = GetMajorName(attr);
+            var shortName = GetShortName(attr);
+            var scale = GetScale(attr);
+            var exportsSymbol = GetExportsShorthandSymbol(attr);
+            yield return new(majorName, shortName, scale, exportsSymbol);
+
+            var prefix = attr.ConstructorArguments[QuantityUnitAttributeFields.Prefix].Value is int flag ? flag : 0;
+            var powerOfPrefix = attr.ConstructorArguments[QuantityUnitAttributeFields.PowerOfPrefix].Value is int pop ? pop : 1;
+            var prefixSet = _UnitPrefix.Where(tpl => (tpl.flag & prefix) != 0);
+            var camelMajorName = char.ToLower(majorName[0]) + majorName.Substring(1);
+            foreach (var (_, name, symbol, pScale) in prefixSet)
+            {
+                var exMajorName = name + camelMajorName;
+                var exShortName = symbol + shortName;
+                yield return new(exMajorName, exShortName, scale * Math.Pow(pScale, powerOfPrefix), exportsSymbol);
+            }
+
         }
+        return [.. attrs.SelectMany(core)];
     }
 
 

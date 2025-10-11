@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SourceGeneratorToolkit;
@@ -8,51 +7,37 @@ namespace QuantitiesDotNet.Generators;
 [Generator(LanguageNames.CSharp)]
 public partial class Generator : IIncrementalGenerator
 {
+    private const string _attrName = "QuantitiesDotNet.QuantityAttribute";
+    private const string _unitAttrName = "QuantitiesDotNet.QuantityUnitAttribute";
+    private const string _operationAttrName = "QuantitiesDotNet.QuantityOperationAttribute";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var quantityAttributeSymbol = context
-            .CompilationProvider
-            .GetMetadata("QuantitiesDotNet.QuantityAttribute");
-        var quantityUnitAttributeSymbol = context
-            .CompilationProvider
-            .GetMetadata("QuantitiesDotNet.QuantityUnitAttribute");
-        var quantityOperationAttributeSymbol = context
-            .CompilationProvider
-            .GetMetadata("QuantitiesDotNet.QuantityOperationAttribute");
-        var attributedFiles = context.SyntaxProvider
-            .FindAttributedMembers<StructDeclarationSyntax, INamedTypeSymbol>(quantityAttributeSymbol);
-
-        var source = attributedFiles
-            .Combine(quantityAttributeSymbol
-                .Combine(quantityUnitAttributeSymbol
-                    .Combine(quantityOperationAttributeSymbol)));
+        var source = context.SyntaxProvider.ForAttributeWithMetadataName(
+            _attrName,
+            static (node, _) => node is StructDeclarationSyntax,
+            static (cxt, _) =>
+            {
+                var symbol = (INamedTypeSymbol)cxt.TargetSymbol;
+                var typeName = symbol.Name;
+                var isRefLike = symbol.IsRefLikeType;
+                var dimension = Dimension.GetDimension(cxt.Attributes[0]);
+                var unitSymbols = UnitSymbol.GetUnitSymbols(cxt.GetAttributes(_unitAttrName));
+                var operations = QuantityOperation.GetOperations(cxt.GetAttributes(_operationAttrName));
+                return new QuantityDef(typeName, isRefLike, dimension, unitSymbols, operations);
+            });
         context.RegisterSourceOutput(source, GenerateUnitTypeImplements);
     }
 
 
     private void GenerateUnitTypeImplements(
         SourceProductionContext context,
-        (AttributedMemberInfo<INamedTypeSymbol> info,
-        (INamedTypeSymbol qAttr, (INamedTypeSymbol unitAttr, INamedTypeSymbol opAttr))) tpl)
+        QuantityDef quantityDef)
     {
         var canceller = context.CancellationToken;
         canceller.ThrowIfCancellationRequested();
 
-        var (info, (qAttr, (qUnitAttr, qOpAttr))) = tpl;
-        var attributes = info.TargetSymbol.GetAttributes();
-        var qDef = attributes
-            .Single(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, qAttr));
-        var unitDefs = attributes
-            .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, qUnitAttr));
-        var operationDefs = attributes
-            .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, qOpAttr));
-
-        var (nonGeneric, generic) = QuantityImplementBuilderBase.Create(
-            info.TargetSymbol.Name,
-            info.TargetSymbol.IsRefLikeType,
-            QuantityDef.GetQuantityDef(qDef),
-            [.. unitDefs.SelectMany(UnitSymbolDef.GetUnitSymbols)],
-            [.. operationDefs.Select(static attr => new UnitOperationDef(attr))]);
+        var (nonGeneric, generic) = QuantityImplementBuilderBase.Create(quantityDef);
         var sb = new SourceBuilderSlim();
         sb.AppendLine("""
             #nullable enable
@@ -86,7 +71,7 @@ public partial class Generator : IIncrementalGenerator
         sb.AppendLine("#endif");
         var source = sb.Build();
         context.AddSource(
-            $"{info.TargetSymbol.Name}.g.cs",
+            $"{quantityDef.TypeName}.g.cs",
             source);
     }
 }
