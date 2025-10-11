@@ -1,9 +1,10 @@
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
 namespace QuantitiesDotNet.Generators;
 
-public record UnitOperationDef(
+public record QuantityOperation(
     string MultiplicantType,
     string MultiplierType,
     string ProductType)
@@ -28,13 +29,16 @@ public record UnitOperationDef(
         public const int ProductType = 2;
     }
 
-    public UnitOperationDef(AttributeData attr)
+    public QuantityOperation(AttributeData attr)
         : this(
               GetMultiplicantType(attr),
               GetMultiplierType(attr),
               GetProductType(attr))
     {
     }
+
+    public static ImmutableArray<QuantityOperation> GetOperations(IEnumerable<AttributeData> enumerable) =>
+        [.. enumerable.Select(attr => new QuantityOperation(attr))];
 
     private static string GetMultiplicantType(AttributeData attr)
         => (attr.ConstructorArguments[QuantityOperationAttributeFields.MultiplicantType].Value as INamedTypeSymbol)
@@ -50,4 +54,5 @@ public record UnitOperationDef(
         => (attr.ConstructorArguments[QuantityOperationAttributeFields.ProductType].Value as INamedTypeSymbol)
             ?.Name
             ?? throw new InvalidOperationException();
+
 }

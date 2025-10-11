@@ -6,29 +6,25 @@ internal abstract class QuantityImplementBuilderBase(
     string typeNameBase,
     string tValue,
     bool isRefLikeType,
-    QuantityDef quantityDef,
-    IList<UnitSymbolDef> unitSymbols,
-    IList<UnitOperationDef> unitOperations)
+    Dimension dimension,
+    IList<UnitSymbol> unitSymbols,
+    IList<QuantityOperation> unitOperations)
 {
     protected static readonly SourceStringHandler Empty = new(0, 0);
 
-    public static (QuantityImplementBuilderBase NonGeneric, QuantityImplementBuilderBase Generic) Create(
-        string typeNameBase,
-        bool isRefLikeType,
-        QuantityDef quantityDef,
-        IList<UnitSymbolDef> unitSymbols,
-        IList<UnitOperationDef> unitOperations)
+    public static (QuantityImplementBuilderBase NonGeneric, QuantityImplementBuilderBase Generic) Create(QuantityDef quantityDef)
     {
+        var (typeNameBase, isRefLike, dimension, unitSymbols, unitOperations) = quantityDef;
         var nonGeneric = new NonGenericQuantityImplementBuilder(
             typeNameBase,
-            isRefLikeType,
-            quantityDef,
+            isRefLike,
+            dimension,
             unitSymbols,
             unitOperations);
         var generic = new GenericQuantityImplementBuilder(
             typeNameBase,
-            isRefLikeType,
-            quantityDef,
+            isRefLike,
+            dimension,
             unitSymbols,
             unitOperations);
         return (nonGeneric, generic);
@@ -37,13 +33,13 @@ internal abstract class QuantityImplementBuilderBase(
     public string TypeNameBase => typeNameBase;
     public string TValue => tValue;
     public bool IsRefLikeType => isRefLikeType;
-    public QuantityDef QuantityDef => quantityDef;
-    public IList<UnitSymbolDef> UnitSymbols => unitSymbols;
-    public IList<UnitOperationDef> UnitOperations => unitOperations;
+    public Dimension Dimension => dimension;
+    public IList<UnitSymbol> UnitSymbols => unitSymbols;
+    public IList<QuantityOperation> UnitOperations => unitOperations;
 
-    public UnitSymbolDef PrimaryUnit => _primaryUnit ??= GetPrimaryUnit();
-    private UnitSymbolDef? _primaryUnit;
-    private UnitSymbolDef GetPrimaryUnit() => UnitSymbols.FirstOrDefault() ?? new UnitSymbolDef("RawValue", "", 1, false);
+    public UnitSymbol PrimaryUnit => _primaryUnit ??= GetPrimaryUnit();
+    private UnitSymbol? _primaryUnit;
+    private UnitSymbol GetPrimaryUnit() => UnitSymbols.FirstOrDefault() ?? new UnitSymbol("RawValue", "", 1, false);
 
     public abstract string TypeName { get; }
     public abstract string DocTypeName { get; }
@@ -341,7 +337,7 @@ internal abstract class QuantityImplementBuilderBase(
     {
     }
 
-    private void GenerateExternalOperator(SourceBuilderSlim sb, UnitOperationDef op)
+    private void GenerateExternalOperator(SourceBuilderSlim sb, QuantityOperation op)
     {
         var product = GetRelativeType(op.ProductType);
         var multiplicant = GetRelativeType(op.MultiplicantType);
@@ -417,10 +413,10 @@ internal abstract class QuantityImplementBuilderBase(
 internal sealed class NonGenericQuantityImplementBuilder(
     string typeNameBase,
     bool isRefLikeType,
-    QuantityDef quantityDef,
-    IList<UnitSymbolDef> unitSymbols,
-    IList<UnitOperationDef> unitOperations)
-    : QuantityImplementBuilderBase(typeNameBase, "double", isRefLikeType, quantityDef, unitSymbols, unitOperations)
+    Dimension dimension,
+    IList<UnitSymbol> unitSymbols,
+    IList<QuantityOperation> unitOperations)
+    : QuantityImplementBuilderBase(typeNameBase, "double", isRefLikeType, dimension, unitSymbols, unitOperations)
 {
     public override string TypeName => TypeNameBase;
     public override string DocTypeName => TypeNameBase;
@@ -452,13 +448,13 @@ internal sealed class NonGenericQuantityImplementBuilder(
             // for reflection of ref struct, explicitly named backing field is provided.
             internal static readonly QuantityMetadata _Metadata = new(
                 "{{TypeNameBase.Substring(1)}}",
-                L : {{QuantityDef.L}},
-                M : {{QuantityDef.M}},
-                T : {{QuantityDef.T}},
-                I : {{QuantityDef.I}},
-                Th: {{QuantityDef.Th}},
-                N : {{QuantityDef.N}},
-                J : {{QuantityDef.J}});
+                L : {{Dimension.L}},
+                M : {{Dimension.M}},
+                T : {{Dimension.T}},
+                I : {{Dimension.I}},
+                Th: {{Dimension.Th}},
+                N : {{Dimension.N}},
+                J : {{Dimension.J}});
     
             /// <summary> Gets quantity metadata instance for <see cref="{{DocTypeName}}" />. </summary>
             public static QuantityMetadata Metadata => _Metadata;
@@ -514,10 +510,10 @@ internal sealed class NonGenericQuantityImplementBuilder(
 internal sealed class GenericQuantityImplementBuilder(
     string typeNameBase,
     bool isRefLikeType,
-    QuantityDef quantityDef,
-    IList<UnitSymbolDef> unitSymbols,
-    IList<UnitOperationDef> unitOperations)
-    : QuantityImplementBuilderBase(typeNameBase, "T", isRefLikeType, quantityDef, unitSymbols, unitOperations)
+    Dimension dimension,
+    IList<UnitSymbol> unitSymbols,
+    IList<QuantityOperation> unitOperations)
+    : QuantityImplementBuilderBase(typeNameBase, "T", isRefLikeType, dimension, unitSymbols, unitOperations)
 {
     public override string TypeName => $"{TypeNameBase}<{TValue}>";
     public override string DocTypeName => TypeNameBase;
