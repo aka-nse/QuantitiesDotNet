@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <LangVersion>13</LangVersion>
+        <LangVersion>14.0</LangVersion>
         <OutputType>library</OutputType>
         <Deterministic>true</Deterministic>
         <TargetFramework>netstandard2.0</TargetFramework>
