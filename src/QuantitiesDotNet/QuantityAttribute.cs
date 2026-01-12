@@ -62,6 +62,8 @@ internal sealed class QuantityUnitAttribute : Attribute
     ///     <para>If <c>true</c> generates symbol field for unit shorthands into <see cref="QuantitiesDotNet.UnitShorthands.UnitExtensions" />:</para>
     ///     <para>otherwise <c>false</c>.</para>
     /// </param>
+#pragma warning disable IDE0079
+#pragma warning disable IDE0290
     public QuantityUnitAttribute(
         string name,
         string unit,
@@ -69,6 +71,8 @@ internal sealed class QuantityUnitAttribute : Attribute
         UnitPrefix prefix = UnitPrefix.None,
         int powerOfPrefix = 1,
         bool exportsShorthandSymbol = false)
+#pragma warning restore IDE0290
+#pragma warning restore IDE0079
     {
         Name = name;
         Unit = unit;

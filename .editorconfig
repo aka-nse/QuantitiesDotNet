@@ -281,3 +281,4 @@ dotnet_naming_style.______camelcase.capitalization = camel_case
 
 # extra rules
 dotnet_diagnostic.IDE0005.severity = warning  # Remove unnecessary using directives
+dotnet_diagnostic.IDE0057.severity = silent  # Use range operator
