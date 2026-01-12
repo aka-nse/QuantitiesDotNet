@@ -21,14 +21,14 @@ public partial record QuantityFormatInfo(
 #endif
 
     // lang=regex
-    private const string _FormatMatcherPattern = @"^(?<number>(?:[^\s&]|\\.)*)(?:&(?<spacing>\s*)(?<open>\[?)(?<unit>(?:[^\s\[\]]|\\.)*)(?<close>\]?))?$";
-    private static readonly Regex _FormatMatcher
+    private const string _formatMatcherPattern = @"^(?<number>(?:[^\s&]|\\.)*)(?:&(?<spacing>\s*)(?<open>\[?)(?<unit>(?:[^\s\[\]]|\\.)*)(?<close>\]?))?$";
+    private static readonly Regex _formatMatcher
 #if NET7_0_OR_GREATER
         = GenerateFormatMatcher();
-    [GeneratedRegex(_FormatMatcherPattern)]
+    [GeneratedRegex(_formatMatcherPattern)]
     private static partial Regex GenerateFormatMatcher();
 #else
-        = new(_FormatMatcherPattern, RegexOptions.Compiled);
+        = new(_formatMatcherPattern, RegexOptions.Compiled);
 #endif
 
 
@@ -38,7 +38,7 @@ public partial record QuantityFormatInfo(
     {
         info = default!;
         format ??= "";
-        var match = _FormatMatcher.Match(format);
+        var match = _formatMatcher.Match(format);
         if (!match.Success)
         {
             return false;
