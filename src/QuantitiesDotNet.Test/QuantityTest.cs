@@ -60,8 +60,12 @@ public partial class QuantityTest
         where T : struct, IQuantity<T, double>
     {
         InternalHelpers.NoUse(placeHolder);
-        var _0 = Unsafe.BitCast<double, T>(0.0);
+        var p0 = Unsafe.BitCast<double, T>(+0.0);
+        var n0 = Unsafe.BitCast<double, T>(-0.0);
         var _1 = Unsafe.BitCast<double, T>(1.0);
+        var nan = Unsafe.BitCast<double, T>(double.NaN);
+        var pinf = Unsafe.BitCast<double, T>(double.PositiveInfinity);
+        var ninf = Unsafe.BitCast<double, T>(double.NegativeInfinity);
 
         Assert.Equal(_1, _1);
         Assert.True (_1.Equals(_1));
@@ -75,34 +79,90 @@ public partial class QuantityTest
         Assert.False(_1 >  _1);
         Assert.True (_1 <= _1);
         Assert.False(_1 <  _1);
+        Assert.Equal(_1.GetHashCode(), _1.GetHashCode());
 
-        Assert.NotEqual(_0, _1);
-        Assert.False(_0.Equals(_1));
-        Assert.False(_0.Equals((object)_1));
-        Assert.False(T.Equals(_0, _1));
-        Assert.True(0 > T.Compare(_0, _1));
-        Assert.True(0 > _0.CompareTo(_1));
-        Assert.False(_0 == _1);
-        Assert.True (_0 != _1);
-        Assert.False(_0 >= _1);
-        Assert.False(_0 >  _1);
-        Assert.True (_0 <= _1);
-        Assert.True (_0 <  _1);
+        Assert.NotEqual(p0, _1);
+        Assert.False(p0.Equals(_1));
+        Assert.False(p0.Equals((object)_1));
+        Assert.False(T.Equals(p0, _1));
+        Assert.True(0 > T.Compare(p0, _1));
+        Assert.True(0 > p0.CompareTo(_1));
+        Assert.False(p0 == _1);
+        Assert.True (p0 != _1);
+        Assert.False(p0 >= _1);
+        Assert.False(p0 >  _1);
+        Assert.True (p0 <= _1);
+        Assert.True (p0 <  _1);
 
-        Assert.NotEqual(_1, _0);
-        Assert.False(_1.Equals(_0));
-        Assert.False(_1.Equals((object)_0));
-        Assert.False(T.Equals(_1, _0));
-        Assert.True(0 < T.Compare(_1, _0));
-        Assert.True(0 < _1.CompareTo(_0));
-        Assert.False(_1 == _0);
-        Assert.True (_1 != _0);
-        Assert.True (_1 >= _0);
-        Assert.True (_1 >  _0);
-        Assert.False(_1 <= _0);
-        Assert.False(_1 <  _0);
+        Assert.NotEqual(_1, p0);
+        Assert.False(_1.Equals(p0));
+        Assert.False(_1.Equals((object)p0));
+        Assert.False(T.Equals(_1, p0));
+        Assert.True(0 < T.Compare(_1, p0));
+        Assert.True(0 < _1.CompareTo(p0));
+        Assert.False(_1 == p0);
+        Assert.True (_1 != p0);
+        Assert.True (_1 >= p0);
+        Assert.True (_1 >  p0);
+        Assert.False(_1 <= p0);
+        Assert.False(_1 <  p0);
 
-        Assert.False(_0.Equals(new object()));
+        Assert.False(p0.Equals(new object()));
+
+        Assert.Equal(+0.0.GetHashCode(), p0.GetHashCode());
+        Assert.Equal(-0.0.GetHashCode(), n0.GetHashCode());
+        Assert.Equal(1.0.GetHashCode(), _1.GetHashCode());
+        Assert.Equal(double.NaN.GetHashCode(), nan.GetHashCode());
+        Assert.Equal(double.PositiveInfinity.GetHashCode(), pinf.GetHashCode());
+        Assert.Equal(double.NegativeInfinity.GetHashCode(), ninf.GetHashCode());
+
+#pragma warning disable format
+#pragma warning disable CA2242
+        static int compare(double x, double y) =>
+            (x < y, x > y) switch
+            {
+                (true,  false) => -1,
+                (false, true)  => +1,
+                _ =>  0,
+            };
+
+        Assert.Equal(+0.0 == +0.0, p0 == p0);
+        Assert.Equal(+0.0 <  +0.0, p0 <  p0);
+        Assert.Equal(+0.0 >  +0.0, p0 >  p0);
+        Assert.Equal(+0.0 <= +0.0, p0 <= p0);
+        Assert.Equal(+0.0 >= +0.0, p0 >= p0);
+        Assert.Equal(compare(+0.0, +0.0), T.Compare(p0, p0));
+
+        Assert.Equal(+0.0 == -0.0, p0 == n0);
+        Assert.Equal(+0.0 <  -0.0, p0 <  n0);
+        Assert.Equal(+0.0 >  -0.0, p0 >  n0);
+        Assert.Equal(+0.0 <= -0.0, p0 <= n0);
+        Assert.Equal(+0.0 >= -0.0, p0 >= n0);
+        Assert.Equal(compare(+0.0, -0.0), T.Compare(p0, n0));
+
+        Assert.Equal(double.NaN == double.NaN, nan == nan);
+        Assert.Equal(double.NaN <  double.NaN, nan <  nan);
+        Assert.Equal(double.NaN >  double.NaN, nan >  nan);
+        Assert.Equal(double.NaN <= double.NaN, nan <= nan);
+        Assert.Equal(double.NaN >= double.NaN, nan >= nan);
+        Assert.Equal(compare(double.NaN, double.NaN), T.Compare(nan, nan));
+
+        Assert.Equal(double.PositiveInfinity == double.PositiveInfinity, pinf == pinf);
+        Assert.Equal(double.PositiveInfinity <  double.PositiveInfinity, pinf <  pinf);
+        Assert.Equal(double.PositiveInfinity >  double.PositiveInfinity, pinf >  pinf);
+        Assert.Equal(double.PositiveInfinity <= double.PositiveInfinity, pinf <= pinf);
+        Assert.Equal(double.PositiveInfinity >= double.PositiveInfinity, pinf >= pinf);
+        Assert.Equal(compare(double.PositiveInfinity, double.PositiveInfinity), T.Compare(pinf, pinf));
+
+        Assert.Equal(double.NegativeInfinity == double.NegativeInfinity, ninf == ninf);
+        Assert.Equal(double.NegativeInfinity <  double.NegativeInfinity, ninf <  ninf);
+        Assert.Equal(double.NegativeInfinity >  double.NegativeInfinity, ninf >  ninf);
+        Assert.Equal(double.NegativeInfinity <= double.NegativeInfinity, ninf <= ninf);
+        Assert.Equal(double.NegativeInfinity >= double.NegativeInfinity, ninf >= ninf);
+        Assert.Equal(compare(double.NegativeInfinity, double.NegativeInfinity), T.Compare(ninf, ninf));
+#pragma warning restore CA2242
+#pragma warning restore format
+
     }
 
     [Theory]
@@ -111,7 +171,8 @@ public partial class QuantityTest
         where T : struct, IQuantity<T, decimal>
     {
         InternalHelpers.NoUse(placeHolder);
-        var _0 = Unsafe.BitCast<decimal, T>(0.0m);
+        var p0 = Unsafe.BitCast<decimal, T>(+0.0m);
+        var n0 = Unsafe.BitCast<decimal, T>(-0.0m);
         var _1 = Unsafe.BitCast<decimal, T>(1.0m);
 
         Assert.Equal(_1, _1);
@@ -126,34 +187,65 @@ public partial class QuantityTest
         Assert.False(_1 >  _1);
         Assert.True (_1 <= _1);
         Assert.False(_1 <  _1);
+        Assert.Equal(_1.GetHashCode(), _1.GetHashCode());
 
-        Assert.NotEqual(_0, _1);
-        Assert.False(_0.Equals(_1));
-        Assert.False(_0.Equals((object)_1));
-        Assert.False(T.Equals(_0, _1));
-        Assert.True(0 > T.Compare(_0, _1));
-        Assert.True(0 > _0.CompareTo(_1));
-        Assert.False(_0 == _1);
-        Assert.True (_0 != _1);
-        Assert.False(_0 >= _1);
-        Assert.False(_0 >  _1);
-        Assert.True (_0 <= _1);
-        Assert.True (_0 <  _1);
+        Assert.NotEqual(p0, _1);
+        Assert.False(p0.Equals(_1));
+        Assert.False(p0.Equals((object)_1));
+        Assert.False(T.Equals(p0, _1));
+        Assert.True(0 > T.Compare(p0, _1));
+        Assert.True(0 > p0.CompareTo(_1));
+        Assert.False(p0 == _1);
+        Assert.True (p0 != _1);
+        Assert.False(p0 >= _1);
+        Assert.False(p0 >  _1);
+        Assert.True (p0 <= _1);
+        Assert.True (p0 <  _1);
 
-        Assert.NotEqual(_1, _0);
-        Assert.False(_1.Equals(_0));
-        Assert.False(_1.Equals((object)_0));
-        Assert.False(T.Equals(_1, _0));
-        Assert.True(0 < T.Compare(_1, _0));
-        Assert.True(0 < _1.CompareTo(_0));
-        Assert.False(_1 == _0);
-        Assert.True (_1 != _0);
-        Assert.True (_1 >= _0);
-        Assert.True (_1 >  _0);
-        Assert.False(_1 <= _0);
-        Assert.False(_1 <  _0);
+        Assert.NotEqual(_1, p0);
+        Assert.False(_1.Equals(p0));
+        Assert.False(_1.Equals((object)p0));
+        Assert.False(T.Equals(_1, p0));
+        Assert.True(0 < T.Compare(_1, p0));
+        Assert.True(0 < _1.CompareTo(p0));
+        Assert.False(_1 == p0);
+        Assert.True (_1 != p0);
+        Assert.True (_1 >= p0);
+        Assert.True (_1 >  p0);
+        Assert.False(_1 <= p0);
+        Assert.False(_1 <  p0);
 
-        Assert.False(_0.Equals(new object()));
+        Assert.False(p0.Equals(new object()));
+
+        Assert.Equal(+0.0m.GetHashCode(), p0.GetHashCode());
+        Assert.Equal(-0.0m.GetHashCode(), n0.GetHashCode());
+        Assert.Equal(1.0m.GetHashCode(), _1.GetHashCode());
+
+#pragma warning disable format
+#pragma warning disable CA2242
+        static int compare(double x, double y) =>
+            (x < y, x > y) switch
+            {
+                (true,  false) => -1,
+                (false, true)  => +1,
+                _ =>  0,
+            };
+
+        Assert.Equal(+0.0 == +0.0, p0 == p0);
+        Assert.Equal(+0.0 <  +0.0, p0 <  p0);
+        Assert.Equal(+0.0 >  +0.0, p0 >  p0);
+        Assert.Equal(+0.0 <= +0.0, p0 <= p0);
+        Assert.Equal(+0.0 >= +0.0, p0 >= p0);
+        Assert.Equal(compare(+0.0, +0.0), T.Compare(p0, p0));
+
+        Assert.Equal(+0.0 == -0.0, p0 == n0);
+        Assert.Equal(+0.0 <  -0.0, p0 <  n0);
+        Assert.Equal(+0.0 >  -0.0, p0 >  n0);
+        Assert.Equal(+0.0 <= -0.0, p0 <= n0);
+        Assert.Equal(+0.0 >= -0.0, p0 >= n0);
+        Assert.Equal(compare(+0.0, -0.0), T.Compare(p0, n0));
+#pragma warning restore CA2242
+#pragma warning restore format
     }
 
 #pragma warning restore CS1718
