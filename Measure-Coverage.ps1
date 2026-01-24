@@ -15,10 +15,10 @@ try {
     Get-ChildItem -Directory src/*.Test*/TestResults/* | Remove-Item -Recurse
 
     # rebuild target project to generate source generator files
-    dotnet build src/QuantitiesDotNet.slnx --no-incremental --property:EmitCompilerGeneratedFiles=true
+    dotnet build QuantitiesDotNet.slnx --no-incremental --property:EmitCompilerGeneratedFiles=true
 
     # test and measure coverage
-    dotnet test src/QuantitiesDotNet.slnx --collect:"XPlat Code Coverage" --settings src/etc/coverlet.runsettings
+    dotnet test QuantitiesDotNet.slnx --collect:"XPlat Code Coverage" --settings src/etc/coverlet.runsettings
 
     # export HTML coverage report
     Get-ChildItem src/*.Test*/TestResults/*/coverage.cobertura.xml `
