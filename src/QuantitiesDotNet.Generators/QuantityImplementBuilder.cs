@@ -308,25 +308,27 @@ internal abstract class QuantityImplementBuilderBase(
             /// <param name="x"></param>
             /// <param name="y"></param>
             /// <returns></returns>
-            public static bool Equals({{TypeName}} x, {{TypeName}} y)
-                => x._rawValue == y._rawValue;
+            public static bool Equals({{TypeName}} x, {{TypeName}} y) =>
+                x._rawValue == y._rawValue;
 
             /// <summary> Determines which value is greater than another. </summary>
             /// <param name="x"></param>
             /// <param name="y"></param>
             /// <returns></returns>
-            public static int Compare({{TypeName}} x, {{TypeName}} y)
-            {
-                if (x._rawValue == y._rawValue) { return 0; }
-                return x._rawValue < y._rawValue ? -1 : 1;
-            }
+            public static int Compare({{TypeName}} x, {{TypeName}} y) =>
+                (x._rawValue < y._rawValue, x._rawValue > y._rawValue) switch
+                {
+                    (true, false) => -1,
+                    (false, true) => +1,
+                    _ => 0,
+                };
 
-            /** <inheritdoc /> */ public static bool operator ==({{TypeName}} x, {{TypeName}} y) => Equals(x, y);
-            /** <inheritdoc /> */ public static bool operator !=({{TypeName}} x, {{TypeName}} y) => !Equals(x, y);
-            /** <inheritdoc /> */ public static bool operator < ({{TypeName}} x, {{TypeName}} y) => Compare(x, y) <  0;
-            /** <inheritdoc /> */ public static bool operator > ({{TypeName}} x, {{TypeName}} y) => Compare(x, y) >  0;
-            /** <inheritdoc /> */ public static bool operator <=({{TypeName}} x, {{TypeName}} y) => Compare(x, y) <= 0;
-            /** <inheritdoc /> */ public static bool operator >=({{TypeName}} x, {{TypeName}} y) => Compare(x, y) >= 0;
+            /** <inheritdoc /> */ public static bool operator ==({{TypeName}} x, {{TypeName}} y) => x._rawValue == y._rawValue;
+            /** <inheritdoc /> */ public static bool operator !=({{TypeName}} x, {{TypeName}} y) => x._rawValue != y._rawValue;
+            /** <inheritdoc /> */ public static bool operator < ({{TypeName}} x, {{TypeName}} y) => x._rawValue <  y._rawValue;
+            /** <inheritdoc /> */ public static bool operator > ({{TypeName}} x, {{TypeName}} y) => x._rawValue >  y._rawValue;
+            /** <inheritdoc /> */ public static bool operator <=({{TypeName}} x, {{TypeName}} y) => x._rawValue <= y._rawValue;
+            /** <inheritdoc /> */ public static bool operator >=({{TypeName}} x, {{TypeName}} y) => x._rawValue >= y._rawValue;
 
             #endregion comparison operator implements
 

@@ -39,13 +39,36 @@ public interface IQuantity<TSelf, T>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
+    /// <remarks>
+    /// The implementation must be <c>x.RawValue == y.RawValue</c>.
+    /// The behaviour for edge cases conforms to the implementation of <typeparamref name="T"/>.
+    /// </remarks>
     public static abstract bool Equals(TSelf x, TSelf y);
 
     /// <summary> Determines which value is greater than another. </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
+    /// <remarks>
+    /// The implementation must be <c>x.RawValue == y.RawValue ? 0 : (x.RawValue &lt; y.RawValue ? -1 : 1)</c>.
+    /// The behaviour for edge cases conforms to the implementation of <typeparamref name="T"/>.
+    /// </remarks>
     public static abstract int Compare(TSelf x, TSelf y);
+
+    /// <inheritdoc cref="object.GetHashCode"/>
+    /// <remarks>
+    /// The implementation must be:
+    /// <code>
+    /// (x.RawValue &lt; y.RawValue, x.RawValue &gt; y.RawValue) switch
+    /// {
+    ///     (true, false) => -1,
+    ///     (false, true) => +1,
+    ///     _ => 0,
+    /// }
+    /// </code>
+    /// The behaviour for edge cases conforms to the implementation of <typeparamref name="T"/>.
+    /// </remarks>
+    public int GetHashCode();
 
 #endif
 }
