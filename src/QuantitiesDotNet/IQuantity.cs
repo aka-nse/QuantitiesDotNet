@@ -39,12 +39,18 @@ public interface IQuantity<TSelf, T>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
+    /// <remarks>
+    /// The implementation must be <c>x.RawValue == y.RawValue</c>.
+    /// </remarks>
     public static abstract bool Equals(TSelf x, TSelf y);
 
     /// <summary> Determines which value is greater than another. </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
+    /// <remarks>
+    /// The implementation must be <c>x.RawValue == y.RawValue ? 0 : (x.RawValue &lt; y.RawValue ? -1 : 1)</c>.
+    /// </remarks>
     public static abstract int Compare(TSelf x, TSelf y);
 
 #endif
