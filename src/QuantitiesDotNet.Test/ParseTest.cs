@@ -1,3 +1,4 @@
+using System.Text;
 using QuantitiesDotNet.Generic;
 
 namespace QuantitiesDotNet;
@@ -108,6 +109,76 @@ public class ParseTest
         else
         {
             Assert.False(QSpeed<decimal>.TryParse(expression, null, out _));
+            Assert.Throws<FormatException>(() => QSpeed<decimal>.Parse(expression, null));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ParseTestCase))]
+    public void ParseCharSpan(string expression, QSpeed? expected)
+    {
+        if (expected is QSpeed expected_)
+        {
+            Assert.True(QSpeed.TryParse((ReadOnlySpan<char>)expression, null, out var actual));
+            Assert.Equal(expected_, actual);
+            Assert.Equal(expected_, QSpeed.Parse(expression, null));
+        }
+        else
+        {
+            Assert.False(QSpeed.TryParse((ReadOnlySpan<char>)expression, null, out _));
+            Assert.Throws<FormatException>(() => QSpeed.Parse(expression, null));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ParseTestCase))]
+    public void ParseUtf8(string expression, QSpeed? expected)
+    {
+        var utf8Bytes = Encoding.UTF8.GetBytes(expression);
+        if (expected is QSpeed expected_)
+        {
+            Assert.True(QSpeed.TryParse(utf8Bytes, null, out var actual));
+            Assert.Equal(expected_, actual);
+            Assert.Equal(expected_, QSpeed.Parse(expression, null));
+        }
+        else
+        {
+            Assert.False(QSpeed.TryParse(utf8Bytes, null, out _));
+            Assert.Throws<FormatException>(() => QSpeed.Parse(expression, null));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ParseGenericTestCase))]
+    public void ParseCharSpanGeneric(string expression, QSpeed<decimal>? expected)
+    {
+        if (expected is QSpeed<decimal> expected_)
+        {
+            Assert.True(QSpeed<decimal>.TryParse((ReadOnlySpan<char>)expression, null, out var actual));
+            Assert.Equal(expected_, actual);
+            Assert.Equal(expected_, QSpeed<decimal>.Parse(expression, null));
+        }
+        else
+        {
+            Assert.False(QSpeed<decimal>.TryParse((ReadOnlySpan<char>)expression, null, out _));
+            Assert.Throws<FormatException>(() => QSpeed<decimal>.Parse(expression, null));
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ParseGenericTestCase))]
+    public void ParseUtf8Generic(string expression, QSpeed<decimal>? expected)
+    {
+        var utf8Bytes = new UTF8Encoding(false).GetBytes(expression);
+        if (expected is QSpeed<decimal> expected_)
+        {
+            Assert.True(QSpeed<decimal>.TryParse(utf8Bytes, null, out var actual));
+            Assert.Equal(expected_, actual);
+            Assert.Equal(expected_, QSpeed<decimal>.Parse(expression, null));
+        }
+        else
+        {
+            Assert.False(QSpeed<decimal>.TryParse(utf8Bytes, null, out _));
             Assert.Throws<FormatException>(() => QSpeed<decimal>.Parse(expression, null));
         }
     }
