@@ -109,14 +109,66 @@ internal abstract class QuantityImplementBuilderBase(
             /// <summary>
             /// Tries to parse a string into a value.
             /// </summary>
-            /// <param name="s"></param>
+            /// <param name="expression"></param>
             /// <param name="provider"></param>
             /// <param name="result"></param>
             /// <returns></returns>
-            public static bool TryParse(string? s, IFormatProvider? provider, out {{TypeName}} result)
+            public static bool TryParse(string? expression, IFormatProvider? provider, out {{TypeName}} result)
             {
                 result = default;
-                if(!QuantityParseInfo.TryCompile(s, out var info))
+                if(!QuantityParseInfo.TryCompile(expression, out var info))
+                {
+                    return false;
+                }
+                if(!Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    return false;
+                }
+                if(!{{TValue}}.TryParse(info.Number, NumberStyles.Any, provider, out var x))
+                {
+                    return false;
+                }
+                result = new(x * unitMeta.Scale);
+                return true;
+            }
+        
+            /// <summary>
+            /// Tries to parse a string into a value.
+            /// </summary>
+            /// <param name="expression"></param>
+            /// <param name="provider"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public static bool TryParse(ReadOnlySpan<char> expression, IFormatProvider? provider, out {{TypeName}} result)
+            {
+                result = default;
+                if(!QuantityParseInfo.TryCompile(expression, out var info))
+                {
+                    return false;
+                }
+                if(!Units.TryGetValue(info.UnitSelector, out var unitMeta))
+                {
+                    return false;
+                }
+                if(!{{TValue}}.TryParse(info.Number, NumberStyles.Any, provider, out var x))
+                {
+                    return false;
+                }
+                result = new(x * unitMeta.Scale);
+                return true;
+            }
+        
+            /// <summary>
+            /// Tries to parse a string into a value.
+            /// </summary>
+            /// <param name="utf8Expression"></param>
+            /// <param name="provider"></param>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public static bool TryParse(ReadOnlySpan<byte> utf8Expression, IFormatProvider? provider, out {{TypeName}} result)
+            {
+                result = default;
+                if(!QuantityParseInfo.TryCompile(utf8Expression, out var info))
                 {
                     return false;
                 }
@@ -135,16 +187,46 @@ internal abstract class QuantityImplementBuilderBase(
             /// <summary>
             /// Parses a string into a value.
             /// </summary>
-            /// <param name="s"></param>
+            /// <param name="expression"></param>
             /// <param name="provider"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException"></exception>
             /// <exception cref="FormatException"></exception>
-            public static {{TypeName}} Parse(string? s, IFormatProvider? provider)
+            public static {{TypeName}} Parse(string? expression, IFormatProvider? provider)
             {
-                if(s is null)
-                    throw new ArgumentNullException(nameof(s));
-                if(!TryParse(s, provider, out var result))
+                if(expression is null)
+                    throw new ArgumentNullException(nameof(expression));
+                if(!TryParse(expression, provider, out var result))
+                    throw new FormatException();
+                return result;
+            }
+        
+            /// <summary>
+            /// Parses a string into a value.
+            /// </summary>
+            /// <param name="expression"></param>
+            /// <param name="provider"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException"></exception>
+            /// <exception cref="FormatException"></exception>
+            public static {{TypeName}} Parse(ReadOnlySpan<char> expression, IFormatProvider? provider)
+            {
+                if(!TryParse(expression, provider, out var result))
+                    throw new FormatException();
+                return result;
+            }
+        
+            /// <summary>
+            /// Parses a string into a value.
+            /// </summary>
+            /// <param name="utf8Expression"></param>
+            /// <param name="provider"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentNullException"></exception>
+            /// <exception cref="FormatException"></exception>
+            public static {{TypeName}} Parse(ReadOnlySpan<byte> utf8Expression, IFormatProvider? provider)
+            {
+                if(!TryParse(utf8Expression, provider, out var result))
                     throw new FormatException();
                 return result;
             }
@@ -166,12 +248,8 @@ internal abstract class QuantityImplementBuilderBase(
             public string ToString(string? format)
                 => ToString(format, CultureInfo.CurrentCulture);
 
-            private (QuantityFormatInfo info, string number, string unit) GetFormatInfo(string? format, IFormatProvider? formatProvider)
+            private (string number, string unit) GetFormatInfo(QuantityFormatInfo info, IFormatProvider? formatProvider)
             {
-                if(!QuantityFormatInfo.TryCompile(format, out var info))
-                {
-                    throw new FormatException();
-                }
                 {{TValue}} number;
                 string unit;
                 if(Units.TryGetValue(info.UnitSelector, out var unitMeta))
@@ -185,28 +263,54 @@ internal abstract class QuantityImplementBuilderBase(
                     unit = "{{PrimaryUnit.ShortName}}";
                 }
                 var numberText = string.Format(formatProvider, "{0:" + info.NumberFormat + "}", number);
-                return (info, numberText, unit);
+                return (numberText, unit);
             }
 
             /// <inheritdoc />
             public string ToString(string? format, IFormatProvider? formatProvider)
             {
-                var (info, number, unit) = GetFormatInfo(format, formatProvider);
+                if(!QuantityFormatInfo.TryCompile(format, out var info))
+                {
+                    throw new FormatException();
+                }
+                var (number, unit) = GetFormatInfo(info, formatProvider);
                 return info.Format(number, unit);
             }
 
             /// <summary>
             /// Tries to format the value of the current instance into the provided span of characters.
             /// </summary>
-            /// <param name="destination">The span in which to write this instance's value formatted as a span of characters.</param>
+            /// <param name="destination">The span in which to write this instance'expression value formatted as a span of characters.</param>
             /// <param name="charsWritten">When this method returns, contains the number of characters that were written in <paramref name="destination"/>.</param>
             /// <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="destination"/>.</param>
             /// <param name="formatProvider">An optional object that supplies culture-specific formatting information for <paramref name="destination"/>.</param>
             /// <returns><c>true</c> if the formatting was successful; otherwise, <c>false</c>.</returns>
             public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? formatProvider)
             {
-                var (info, number, unit) = GetFormatInfo(format.ToString(), formatProvider);
+                if(!QuantityFormatInfo.TryCompile(format, out var info))
+                {
+                    throw new FormatException();
+                }
+                var (number, unit) = GetFormatInfo(info, formatProvider);
                 return info.TryFormat(number, unit, destination, out charsWritten);
+            }
+        
+            /// <summary>
+            /// Tries to format the value of the current instance into the provided span of characters.
+            /// </summary>
+            /// <param name="utf8Destination">The span in which to write this instance'expression value formatted as a span of characters.</param>
+            /// <param name="charsWritten">When this method returns, contains the number of characters that were written in <paramref name="destination"/>.</param>
+            /// <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="destination"/>.</param>
+            /// <param name="formatProvider">An optional object that supplies culture-specific formatting information for <paramref name="destination"/>.</param>
+            /// <returns><c>true</c> if the formatting was successful; otherwise, <c>false</c>.</returns>
+            public bool TryFormat(Span<byte> utf8Destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? formatProvider)
+            {
+                if(!QuantityFormatInfo.TryCompile(format, out var info))
+                {
+                    throw new FormatException();
+                }
+                var (number, unit) = GetFormatInfo(info, formatProvider);
+                return info.TryFormat(number, unit, utf8Destination, out charsWritten);
             }
 
             /// <inheritdoc />

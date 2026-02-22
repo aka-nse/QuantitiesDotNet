@@ -29,6 +29,18 @@ public partial record QuantityParseInfo(
 #endif
 
     public static bool TryCompile(
+        ReadOnlySpan<byte> utf8Expression,
+        [NotNullWhen(true)] out QuantityParseInfo? info) =>
+        // TODO: implement a more efficient way to parse UTF-8 without converting to string first, if possible.
+        TryCompile(Encoding.UTF8.GetString(utf8Expression), out info);
+
+    public static bool TryCompile(
+        ReadOnlySpan<char> expression,
+        [NotNullWhen(true)] out QuantityParseInfo? info) =>
+        // TODO: implement a more efficient way to parse ReadOnlySpan<char> without converting to string first, if possible.
+        TryCompile(expression.ToString(), out info);
+
+    public static bool TryCompile(
         string? expression,
         [NotNullWhen(true)] out QuantityParseInfo? info)
     {
