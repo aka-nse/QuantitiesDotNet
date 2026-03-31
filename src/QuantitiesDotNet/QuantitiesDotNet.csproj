@@ -22,6 +22,10 @@
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="../QuantitiesDotNet.Generators/QuantitiesDotNet.Generators.csproj">
             <OutputItemType>Analyzer</OutputItemType>

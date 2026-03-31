@@ -2,6 +2,10 @@ namespace QuantitiesDotNet;
 
 public interface IQuantity
     : IFormattable
+#if NET7_0_OR_GREATER
+    , ISpanFormattable
+    , IUtf8SpanFormattable
+#endif
 {
 #if NET7_0_OR_GREATER
     public static virtual QuantityMetadata Metadata
@@ -16,7 +20,9 @@ public interface IQuantity<TSelf, T>
     , IComparable<TSelf>
     , IEquatable<TSelf>
 #if NET7_0_OR_GREATER
-    , ISpanFormattable
+    , IParsable<TSelf>
+    , ISpanParsable<TSelf>
+    , IUtf8SpanParsable<TSelf>
     , IComparisonOperators<TSelf, TSelf, bool>
     , IAdditionOperators<TSelf, TSelf, TSelf>
     , ISubtractionOperators<TSelf, TSelf, TSelf>
